@@ -1,0 +1,34 @@
+services:
+  radio-shell:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: radio-shell:1.0.0
+    container_name: radio-shell
+
+    # İnteraktif terminal (komut girişi için zorunlu)
+    stdin_open: true
+    tty: true
+
+    # Favoriler ve özel istasyonlar kalıcı
+    volumes:
+      - radio-data:/root/.radio-shell
+
+    # macOS: PulseAudio veya BlackHole aracılığıyla ses
+    # Linux: ALSA/PulseAudio doğrudan erişim
+    environment:
+      - TERM=xterm-256color
+      # Linux PulseAudio için uncomment edin:
+      # - PULSE_SERVER=unix:/run/user/1000/pulse/native
+
+    # Linux ses cihazı erişimi için uncomment edin:
+    # devices:
+    #   - /dev/snd:/dev/snd
+
+volumes:
+  radio-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${HOME}/.radio-shell

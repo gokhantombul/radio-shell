@@ -1,0 +1,8 @@
+
+  ╔══════════════════════════════════════════════════════════════╗
+  ║   ♬  ░░░ RADIO SHELL ░░░  ♬                                ║
+  ║   Terminal FM Radio Player - Türkiye & Dünya                ║
+  ║   v1.0.0 | Spring Boot + Java 25                           ║
+  ╚══════════════════════════════════════════════════════════════╝
+
+  Komutlar için 'help' yazın | 'listele' ile istasyonları görün

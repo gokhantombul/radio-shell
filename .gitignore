@@ -1,0 +1,71 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+.flattened-pom.xml
+.m2/
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+*.classpath
+*.project
+.settings/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+
+# Gradle (if used in future)
+.gradle/
+gradle/
+build/
+
+# Node (if used in future)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+*.log
+
+# Local environment
+.env
+.env.local
+.env.*.local
+
+# Runtime
+*.pid
+*.seed
+*.pid.lock
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# User data (local, not to commit)
+.radio-shell/
+~/.radio-shell/
+
+# Temp files
+*.tmp
+*.temp
+*.bak

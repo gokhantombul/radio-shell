@@ -1,0 +1,15 @@
+♬ Radio Shell - Terminal FM Radio Player
+
+Listen to FM radio stations from Turkey and around the world directly from your terminal.
+Built with Spring Boot 4, Java 25, and interactive shell commands.
+Includes 45+ pre-configured stations, custom station support, favorites, and Docker support.
+
+Features:
+- 45+ Turkish and international FM stations
+- Interactive terminal shell with color output
+- Search and filter stations by country/genre
+- Favorites and custom station management
+- Docker & Docker Compose support
+- Persistent configuration
+
+Usage: ./radio.sh or ./docker-run.sh
