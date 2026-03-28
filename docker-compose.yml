@@ -10,25 +10,16 @@ services:
     stdin_open: true
     tty: true
 
-    # Favoriler ve özel istasyonlar kalıcı
+    # Favoriler, özel istasyonlar ve PulseAudio
     volumes:
-      - radio-data:/root/.radio-shell
+      - ${HOME}/.radio-shell:/root/.radio-shell
+      - ${XDG_RUNTIME_DIR}/pulse/native:/run/pulse/native
+      - ${HOME}/.config/pulse/cookie:/root/.config/pulse/cookie:ro
 
-    # macOS: PulseAudio veya BlackHole aracılığıyla ses
-    # Linux: ALSA/PulseAudio doğrudan erişim
+    # ALSA ses cihazı erişimi
+    devices:
+      - /dev/snd:/dev/snd
+
     environment:
       - TERM=xterm-256color
-      # Linux PulseAudio için uncomment edin:
-      # - PULSE_SERVER=unix:/run/user/1000/pulse/native
-
-    # Linux ses cihazı erişimi için uncomment edin:
-    # devices:
-    #   - /dev/snd:/dev/snd
-
-volumes:
-  radio-data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${HOME}/.radio-shell
+      - PULSE_SERVER=unix:/run/pulse/native

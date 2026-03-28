@@ -32,11 +32,16 @@ echo ""
 OS="$(uname -s)"
 
 if [[ "$OS" == "Linux" ]]; then
-    # Linux: ALSA ses cihazına doğrudan erişim
+    # Linux: PulseAudio socket + ALSA cihazı
+    PULSE_SOCKET="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/pulse/native"
+    PULSE_COOKIE="${HOME}/.config/pulse/cookie"
+
     docker run --rm -it \
         --name "$CONTAINER" \
         --device /dev/snd:/dev/snd \
-        -e PULSE_SERVER="${PULSE_SERVER:-unix:${XDG_RUNTIME_DIR}/pulse/native}" \
+        -v "$PULSE_SOCKET:/run/pulse/native" \
+        -v "$PULSE_COOKIE:/root/.config/pulse/cookie:ro" \
+        -e PULSE_SERVER=unix:/run/pulse/native \
         -v "$DATA_DIR:/root/.radio-shell" \
         -e TERM=xterm-256color \
         "$IMAGE"

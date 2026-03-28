@@ -15,9 +15,9 @@ FROM eclipse-temurin:25-jre
 LABEL maintainer="Radio Shell"
 LABEL description="Terminal FM Radio Player - Türkiye & Dünya"
 
-# ffmpeg (ffplay içerir) yükle
+# ffmpeg (ffplay içerir) + PulseAudio client yükle
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ffmpeg && \
+    apt-get install -y --no-install-recommends ffmpeg pulseaudio-utils && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -30,4 +30,4 @@ VOLUME ["/root/.radio-shell"]
 # İnteraktif terminal gerekli
 ENV TERM=xterm-256color
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "--enable-native-access=ALL-UNNAMED", "-jar", "app.jar"]

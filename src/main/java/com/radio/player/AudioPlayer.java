@@ -7,6 +7,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,16 +20,25 @@ public class AudioPlayer {
 
     private static final Logger log = LoggerFactory.getLogger(AudioPlayer.class);
 
+    private static final DateTimeFormatter FILE_DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+
     private final RadioConfig config;
     private Process currentProcess;
     private RadioStation currentStation;
     private int volume = 100;
+
+    private Process recordProcess;
+    private Path recordFile;
 
     public AudioPlayer(RadioConfig config) {
         this.config = config;
     }
 
     public synchronized boolean play(RadioStation station) {
+        return play(station, null);
+    }
+
+    public synchronized boolean play(RadioStation station, PrintWriter out) {
         stop();
 
         List<String> command = new ArrayList<>();
@@ -41,8 +55,27 @@ public class AudioPlayer {
             currentProcess = pb.start();
             currentStation = station;
 
-            // Check if process started successfully (give it a moment)
-            Thread.sleep(500);
+            // Show connection progress animation
+            String[] spinner = {"\u28FE", "\u28FD", "\u28FB", "\u28BF", "\u287F", "\u28DF", "\u28EF", "\u28F7"};
+            int steps = 25;
+            for (int i = 0; i < steps; i++) {
+                if (out != null) {
+                    int pct = (i + 1) * 100 / steps;
+                    int filled = pct / 5;
+                    String bar = "\u2588".repeat(filled) + "\u2591".repeat(20 - filled);
+                    out.print("\r  " + spinner[i % spinner.length] + " Baglaniyor [" + bar + "] %" + pct);
+                    out.flush();
+                }
+                Thread.sleep(80);
+                if (!currentProcess.isAlive()) {
+                    break;
+                }
+            }
+            if (out != null) {
+                out.print("\r" + " ".repeat(60) + "\r");
+                out.flush();
+            }
+
             if (!currentProcess.isAlive()) {
                 int exit = currentProcess.exitValue();
                 if (exit != 0) {
@@ -91,5 +124,57 @@ public class AudioPlayer {
             RadioStation station = currentStation;
             play(station);
         }
+    }
+
+    public synchronized Path startRecording() throws IOException {
+        if (currentStation == null || !isPlaying()) {
+            return null;
+        }
+        stopRecording();
+
+        Path recordDir = Path.of(config.getRecordingsDir());
+        Files.createDirectories(recordDir);
+
+        String safeName = currentStation.name().replaceAll("[^a-zA-Z0-9çÇğĞıİöÖşŞüÜ_ -]", "");
+        String timestamp = LocalDateTime.now().format(FILE_DATE_FMT);
+        recordFile = recordDir.resolve(safeName + "_" + timestamp + ".mp3");
+
+        List<String> command = List.of(
+                "ffmpeg", "-y",
+                "-i", currentStation.url(),
+                "-acodec", "libmp3lame",
+                "-ab", "192k",
+                "-loglevel", "quiet",
+                recordFile.toString()
+        );
+
+        ProcessBuilder pb = new ProcessBuilder(command);
+        pb.redirectErrorStream(true);
+        pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+        recordProcess = pb.start();
+        return recordFile;
+    }
+
+    public synchronized Path stopRecording() {
+        if (recordProcess != null && recordProcess.isAlive()) {
+            recordProcess.destroy(); // SIGTERM - ffmpeg düzgün kapatır dosyayı
+            try {
+                recordProcess.waitFor();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        Path stoppedFile = recordFile;
+        recordProcess = null;
+        recordFile = null;
+        return stoppedFile;
+    }
+
+    public synchronized boolean isRecording() {
+        return recordProcess != null && recordProcess.isAlive();
+    }
+
+    public synchronized Path getRecordFile() {
+        return recordFile;
     }
 }

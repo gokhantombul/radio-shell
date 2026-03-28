@@ -2,6 +2,16 @@ package com.radio.shell;
 
 import com.radio.player.AudioPlayer;
 import com.radio.util.UIUtils;
+import org.jline.reader.Candidate;
+import org.jline.reader.Completer;
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.ParsedLine;
+import org.jline.reader.UserInterruptException;
+import org.jline.reader.impl.history.DefaultHistory;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.shell.core.InputReader;
@@ -12,10 +22,11 @@ import org.springframework.shell.core.command.CommandRegistry;
 import org.springframework.shell.core.command.ParsedInput;
 import org.springframework.stereotype.Component;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 
 @Component
 public class InteractiveShell implements ApplicationRunner {
@@ -42,28 +53,92 @@ public class InteractiveShell implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        PrintWriter out = new PrintWriter(System.out, true, StandardCharsets.UTF_8);
-        BufferedReader reader = new BufferedReader(
-                new InputStreamReader(System.in, StandardCharsets.UTF_8));
+        // History file: ~/.radio-shell/history
+        Path historyDir = Path.of(System.getProperty("user.home"), ".radio-shell");
+        Files.createDirectories(historyDir);
+        Path historyFile = historyDir.resolve("history");
 
-        // Simple InputReader backed by our BufferedReader
+        Terminal terminal = TerminalBuilder.builder()
+                .system(true)
+                .encoding(StandardCharsets.UTF_8)
+                .build();
+
+        // Built-in commands for completion
+        List<String> builtinCommands = List.of(
+                "help", "yardim", "yardım", "?",
+                "exit", "quit", "çıkış", "cikis", "q"
+        );
+
+        // Completer that combines registered commands + built-in commands
+        Completer completer = (reader, line, candidates) -> {
+            String word = line.word();
+            int wordIndex = line.wordIndex();
+
+            if (wordIndex == 0) {
+                // Complete command names
+                commandRegistry.getCommands().forEach(cmd -> {
+                    if (cmd.getName().startsWith(word)) {
+                        candidates.add(new Candidate(cmd.getName(), cmd.getName(),
+                                null, cmd.getDescription(), null, null, true));
+                    }
+                });
+                builtinCommands.forEach(cmd -> {
+                    if (cmd.startsWith(word)) {
+                        candidates.add(new Candidate(cmd));
+                    }
+                });
+            } else {
+                // Complete options for the current command
+                String cmdName = line.words().getFirst();
+                var cmd = commandRegistry.getCommandByName(cmdName);
+                if (cmd != null && word.startsWith("-")) {
+                    cmd.getOptions().forEach(opt -> {
+                        String longOpt = "--" + opt.longName();
+                        String shortOpt = "-" + opt.shortName();
+                        if (longOpt.startsWith(word)) {
+                            candidates.add(new Candidate(longOpt, longOpt,
+                                    null, opt.description(), null, null, true));
+                        }
+                        if (shortOpt.startsWith(word)) {
+                            candidates.add(new Candidate(shortOpt, shortOpt,
+                                    null, opt.description(), null, null, true));
+                        }
+                    });
+                }
+            }
+        };
+
+        LineReader lineReader = LineReaderBuilder.builder()
+                .terminal(terminal)
+                .completer(completer)
+                .history(new DefaultHistory())
+                .variable(LineReader.HISTORY_FILE, historyFile)
+                .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true)
+                .build();
+
+        PrintWriter out = terminal.writer();
+
+        // InputReader backed by JLine
         InputReader inputReader = new InputReader() {
             @Override
             public String readInput() throws Exception {
-                return reader.readLine();
+                return lineReader.readLine();
             }
         };
 
         printBanner(out);
 
-        String line;
         while (true) {
-            out.print(getPrompt());
-            out.flush();
+            String line;
+            try {
+                line = lineReader.readLine(getPrompt());
+            } catch (EndOfFileException e) {
+                break; // Ctrl+D
+            } catch (UserInterruptException e) {
+                continue; // Ctrl+C - ignore and show new prompt
+            }
 
-            line = reader.readLine();
-            if (line == null) break; // EOF (Ctrl+D)
-
+            if (line == null) break;
             line = line.trim();
             if (line.isEmpty()) continue;
 
@@ -80,6 +155,7 @@ public class InteractiveShell implements ApplicationRunner {
 
             executeCommand(line, out, inputReader);
         }
+        terminal.close();
     }
 
     private void executeCommand(String input, PrintWriter out, InputReader inputReader) {
@@ -147,6 +223,10 @@ public class InteractiveShell implements ApplicationRunner {
         out.println("    dur                  - Çalmayı durdurur");
         out.println("    durum                - Şu an çalanı gösterir");
         out.println("    ses -s <0-100>       - Ses seviyesini ayarlar");
+        out.println();
+        out.println("  " + ANSI_BOLD + "KAYIT" + ANSI_RESET);
+        out.println("    kaydet               - Yayını MP3 olarak kaydetmeye başlar");
+        out.println("    kayitdur             - Kaydı durdurur ve dosyayı kaydeder");
         out.println();
         out.println("  " + ANSI_BOLD + "FAVORİLER" + ANSI_RESET);
         out.println("    favori -i <id>       - Favorilere ekle/çıkar");

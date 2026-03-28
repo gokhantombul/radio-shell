@@ -9,6 +9,10 @@ import org.springframework.shell.core.command.annotation.Option;
 
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.List;
 
 @Component
@@ -107,7 +111,8 @@ public class RadioCommands {
         sb.append("  ► Tür: %s\n".formatted(station.genre()));
         sb.append("  ► Ses: %%%d\n".formatted(player.getVolume()));
 
-        boolean success = player.play(station);
+        PrintWriter progressOut = new PrintWriter(System.out, true, StandardCharsets.UTF_8);
+        boolean success = player.play(station, progressOut);
         if (success) {
             sb.append("  ✓ Çalınıyor! Durdurmak için 'dur' yazın.\n");
         } else {
@@ -122,8 +127,14 @@ public class RadioCommands {
             return "  ⚠ Şu an çalan bir istasyon yok.";
         }
         var station = player.getCurrentStation();
+        var sb = new StringBuilder();
+        if (player.isRecording()) {
+            Path file = player.stopRecording();
+            sb.append("  ■ Kayıt durduruldu: %s\n".formatted(file.getFileName()));
+        }
         player.stop();
-        return "  ■ Durduruldu: %s".formatted(station != null ? station.name() : "");
+        sb.append("  ■ Durduruldu: %s".formatted(station != null ? station.name() : ""));
+        return sb.toString();
     }
 
     @Command(name = "durum", description = "Şu anki çalma durumunu gösterir", group = "Radio")
@@ -139,6 +150,9 @@ public class RadioCommands {
         sb.append("  ► Tür:  %s\n".formatted(station.genre()));
         sb.append("  ► Ses:  %%%d\n".formatted(player.getVolume()));
         sb.append("  ► ID:   %s\n".formatted(station.id()));
+        if (player.isRecording()) {
+            sb.append("  ⏺ Kayıt: %s\n".formatted(player.getRecordFile().getFileName()));
+        }
         return sb.toString();
     }
 
@@ -172,6 +186,36 @@ public class RadioCommands {
             return "  ⚠ Henüz favori istasyon eklenmemiş. 'favori -i <istasyon-id>' ile ekleyin.";
         }
         return "  ★ Favori İstasyonlar:\n" + formatStationTable(favs);
+    }
+
+    @Command(name = "kaydet", description = "Çalan yayını MP3 olarak kaydetmeye başlar", group = "Kayıt")
+    public String startRecording() {
+        if (!player.isPlaying()) {
+            return "  ⚠ Kayıt için önce bir istasyon çalın. Örnek: cal -i tr-powerfm";
+        }
+        if (player.isRecording()) {
+            return "  ⚠ Zaten kayıt yapılıyor: " + player.getRecordFile().getFileName();
+        }
+        try {
+            Path file = player.startRecording();
+            if (file == null) {
+                return "  ✗ Kayıt başlatılamadı.";
+            }
+            var station = player.getCurrentStation();
+            return "  ⏺ Kayıt başladı: %s\n  ► Dosya: %s\n  ► Durdurmak için 'kayitdur' yazın."
+                    .formatted(station.name(), file);
+        } catch (IOException e) {
+            return "  ✗ Kayıt hatası: " + e.getMessage();
+        }
+    }
+
+    @Command(name = "kayitdur", description = "Kaydı durdurur ve dosyayı kaydeder", group = "Kayıt")
+    public String stopRecording() {
+        if (!player.isRecording()) {
+            return "  ⚠ Şu an aktif bir kayıt yok.";
+        }
+        Path file = player.stopRecording();
+        return "  ■ Kayıt durduruldu.\n  ► Dosya: %s".formatted(file);
     }
 
     @Command(name = "ekle", description = "Yeni özel istasyon ekler", group = "Yönetim")

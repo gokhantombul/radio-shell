@@ -96,16 +96,19 @@ public class UIUtils {
     }
 
     private static boolean isWide(int codePoint) {
-        // Basic wide character detection for common symbols used in the app
-        return (codePoint >= 0x1F300 && codePoint <= 0x1F9FF) || // Emojis
-               (codePoint >= 0x2600 && codePoint <= 0x26FF) ||   // Symbols
-               (codePoint >= 0x2700 && codePoint <= 0x27BF) ||   // Dingbats
-               (codePoint >= 0x3000 && codePoint <= 0x9FFF) ||   // CJK
-               (codePoint >= 0x2591 && codePoint <= 0x2593) ||   // Shades (░, ▒, ▓)
-               (codePoint == 0x266C) || // ♬
-               (codePoint == 0x2713) || // ✓
-               (codePoint == 0x2717) || // ✗
-               (codePoint == 0x2605) || // ★
-               (codePoint == 0x2606);   // ☆
+        // Only truly wide characters (East Asian Width = W or F)
+        return (codePoint >= 0x1100 && codePoint <= 0x115F) ||   // Hangul Jamo
+               (codePoint >= 0x2E80 && codePoint <= 0x303E) ||   // CJK Radicals, Kangxi, CJK Symbols
+               (codePoint >= 0x3041 && codePoint <= 0x33BF) ||   // Hiragana, Katakana, Bopomofo, CJK Compat
+               (codePoint >= 0x3400 && codePoint <= 0x4DBF) ||   // CJK Unified Ext A
+               (codePoint >= 0x4E00 && codePoint <= 0x9FFF) ||   // CJK Unified Ideographs
+               (codePoint >= 0xA960 && codePoint <= 0xA97F) ||   // Hangul Jamo Extended-A
+               (codePoint >= 0xAC00 && codePoint <= 0xD7FF) ||   // Hangul Syllables
+               (codePoint >= 0xF900 && codePoint <= 0xFAFF) ||   // CJK Compatibility Ideographs
+               (codePoint >= 0xFE30 && codePoint <= 0xFE6F) ||   // CJK Compatibility Forms
+               (codePoint >= 0xFF01 && codePoint <= 0xFF60) ||   // Fullwidth Forms
+               (codePoint >= 0xFFE0 && codePoint <= 0xFFE6) ||   // Fullwidth Signs
+               (codePoint >= 0x1F300 && codePoint <= 0x1F9FF) || // Misc Symbols & Pictographs, Emoticons, etc.
+               (codePoint >= 0x20000 && codePoint <= 0x2FA1F);   // CJK Unified Ext B-F, Compat Supplement
     }
 }

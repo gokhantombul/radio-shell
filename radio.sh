@@ -16,4 +16,4 @@ if ! command -v ffplay &> /dev/null; then
     exit 1
 fi
 
-exec java -jar "$JAR_FILE"
+exec java --enable-native-access=ALL-UNNAMED -jar "$JAR_FILE"
