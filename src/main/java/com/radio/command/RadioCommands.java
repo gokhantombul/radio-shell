@@ -3,6 +3,7 @@ package com.radio.command;
 import com.radio.model.RadioStation;
 import com.radio.player.AudioPlayer;
 import com.radio.service.StationService;
+import com.radio.util.UIUtils;
 import org.springframework.shell.core.command.annotation.Command;
 import org.springframework.shell.core.command.annotation.Option;
 
@@ -35,9 +36,7 @@ public class RadioCommands {
     public String countries() {
         var countries = stationService.getCountries();
         var sb = new StringBuilder();
-        sb.append("\n  ╔══════════════════════════════════╗\n");
-        sb.append("  ║         ÜLKE LİSTESİ             ║\n");
-        sb.append("  ╚══════════════════════════════════╝\n\n");
+        sb.append("\n").append(UIUtils.getBoxedString(new String[]{"ÜLKE LİSTESİ"}, 34)).append("\n");
         for (var c : countries) {
             long count = stationService.getStationsByCountry(c).size();
             sb.append("  • %-20s (%d istasyon)\n".formatted(c, count));
@@ -59,9 +58,7 @@ public class RadioCommands {
     public String genres() {
         var genres = stationService.getGenres();
         var sb = new StringBuilder();
-        sb.append("\n  ╔══════════════════════════════════╗\n");
-        sb.append("  ║        MÜZİK TÜRLERİ            ║\n");
-        sb.append("  ╚══════════════════════════════════╝\n\n");
+        sb.append("\n").append(UIUtils.getBoxedString(new String[]{"MÜZİK TÜRLERİ"}, 34)).append("\n");
         for (var g : genres) {
             sb.append("  • %s\n".formatted(g));
         }
@@ -136,9 +133,7 @@ public class RadioCommands {
         }
         var station = player.getCurrentStation();
         var sb = new StringBuilder();
-        sb.append("\n  ╔══════════════════════════════════════╗\n");
-        sb.append("  ║           ŞU AN ÇALIYOR              ║\n");
-        sb.append("  ╚══════════════════════════════════════╝\n\n");
+        sb.append("\n").append(UIUtils.getBoxedString(new String[]{"ŞU AN ÇALIYOR"}, 38)).append("\n");
         sb.append("  ♬ %s\n".formatted(station.name()));
         sb.append("  ► Ülke: %s\n".formatted(station.country()));
         sb.append("  ► Tür:  %s\n".formatted(station.genre()));
@@ -209,29 +204,32 @@ public class RadioCommands {
         }
 
         var sb = new StringBuilder();
-        sb.append("\n  ┌─────┬─────────────────────────┬──────────────┬────────────────────┬──────────────────────┐\n");
-        sb.append("  │  #  │ İstasyon                │ Ülke         │ Tür                │ ID                   │\n");
-        sb.append("  ├─────┼─────────────────────────┼──────────────┼────────────────────┼──────────────────────┤\n");
+        sb.append("\n  ┌────────┬─────────────────────────┬──────────────┬────────────────────┬──────────────────────┐\n");
+        sb.append("  │   #    │ İstasyon                │ Ülke         │ Tür                │ ID                   │\n");
+        sb.append("  ├────────┼─────────────────────────┼──────────────┼────────────────────┼──────────────────────┤\n");
 
         int idx = 1;
         for (var s : stations) {
             String fav = stationService.isFavorite(s.id()) ? "★" : " ";
             String playing = (player.isPlaying() && player.getCurrentStation() != null
                     && player.getCurrentStation().id().equals(s.id())) ? "♬" : " ";
-            sb.append("  │ %s%s%s │ %-23s │ %-12s │ %-18s │ %-20s │\n".formatted(
-                    fav, playing, String.format("%2d", idx++),
-                    truncate(s.name(), 23),
-                    truncate(s.country(), 12),
-                    truncate(s.genre(), 18),
-                    truncate(s.id(), 20)));
+
+            // First column contains fav icon (1/2 visual width), playing icon (2 visual width), and idx (2 chars)
+            // Visual width: fav(2?) + playing(2) + idx(2) = 6?
+            // If fav is wide, it's 2. If playing is ♬ it's 2.
+            // String.format("%2d", idx++) is 2.
+            // Total visual width for the first column needs careful management.
+
+            String col1 = fav + playing + String.format("%2d", idx++);
+            sb.append("  │ %s │ %s │ %s │ %s │ %s │\n".formatted(
+                    UIUtils.padRight(col1, 6),
+                    UIUtils.padRight(UIUtils.truncate(s.name(), 23), 23),
+                    UIUtils.padRight(UIUtils.truncate(s.country(), 12), 12),
+                    UIUtils.padRight(UIUtils.truncate(s.genre(), 18), 18),
+                    UIUtils.padRight(UIUtils.truncate(s.id(), 20), 20)));
         }
-        sb.append("  └─────┴─────────────────────────┴──────────────┴────────────────────┴──────────────────────┘\n");
+        sb.append("  └────────┴─────────────────────────┴──────────────┴────────────────────┴──────────────────────┘\n");
         sb.append("  Toplam: %d istasyon | Çalmak için: cal -i <ID>\n".formatted(stations.size()));
         return sb.toString();
-    }
-
-    private String truncate(String s, int max) {
-        if (s == null) return "";
-        return s.length() <= max ? s : s.substring(0, max - 2) + "..";
     }
 }

@@ -1,6 +1,7 @@
 package com.radio.shell;
 
 import com.radio.player.AudioPlayer;
+import com.radio.util.UIUtils;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.shell.core.InputReader;
@@ -116,13 +117,12 @@ public class InteractiveShell implements ApplicationRunner {
 
     private void printBanner(PrintWriter out) {
         out.println();
-        out.println(ANSI_CYAN + ANSI_BOLD +
-                "  ╔══════════════════════════════════════════════════════════════╗\n" +
-                "  ║   ♬  ░░░ RADIO SHELL ░░░  ♬                                ║\n" +
-                "  ║   Terminal FM Radio Player - Türkiye & Dünya                ║\n" +
-                "  ║   v1.0.0 | Spring Boot 4 + Java 25                          ║\n" +
-                "  ╚══════════════════════════════════════════════════════════════╝" +
-                ANSI_RESET);
+        String[] lines = {
+            "♬  ░░░ RADIO SHELL ░░░  ♬",
+            "Terminal FM Radio Player - Türkiye & Dünya",
+            "v1.0.0 | Spring Boot 4 + Java 25"
+        };
+        UIUtils.printBoxed(out, lines, 60, ANSI_CYAN + ANSI_BOLD);
         out.println();
         out.println("  " + ANSI_YELLOW + "Komutlar için 'help', çıkmak için 'exit' yazın." + ANSI_RESET);
         out.println();
@@ -130,9 +130,8 @@ public class InteractiveShell implements ApplicationRunner {
 
     private void printHelp(PrintWriter out) {
         out.println();
-        out.println(ANSI_CYAN + "  ╔══════════════════════════════════════════════════════════════╗");
-        out.println("  ║                       KOMUT LİSTESİ                         ║");
-        out.println("  ╚══════════════════════════════════════════════════════════════╝" + ANSI_RESET);
+        String[] lines = { "KOMUT LİSTESİ" };
+        UIUtils.printBoxed(out, lines, 60, ANSI_CYAN);
         out.println();
         out.println("  " + ANSI_BOLD + "İSTASYON LİSTELEME" + ANSI_RESET);
         out.println("    listele              - Tüm istasyonları listeler");
