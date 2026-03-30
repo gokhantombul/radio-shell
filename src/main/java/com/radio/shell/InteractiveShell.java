@@ -1,6 +1,7 @@
 package com.radio.shell;
 
 import com.radio.player.AudioPlayer;
+import com.radio.service.StationService;
 import com.radio.util.UIUtils;
 import org.jline.reader.Candidate;
 import org.jline.reader.Completer;
@@ -26,7 +27,10 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 @Component
 public class InteractiveShell implements ApplicationRunner {
@@ -37,18 +41,23 @@ public class InteractiveShell implements ApplicationRunner {
     private static final String ANSI_RESET  = "\033[0m";
     private static final String ANSI_BOLD   = "\033[1m";
 
+    private static final Locale TR = Locale.forLanguageTag("tr");
+
     private final CommandParser commandParser;
     private final CommandRegistry commandRegistry;
     private final CommandExecutor commandExecutor;
     private final AudioPlayer player;
+    private final StationService stationService;
 
     public InteractiveShell(CommandParser commandParser,
                             CommandRegistry commandRegistry,
-                            AudioPlayer player) {
+                            AudioPlayer player,
+                            StationService stationService) {
         this.commandParser = commandParser;
         this.commandRegistry = commandRegistry;
         this.commandExecutor = new CommandExecutor(commandRegistry);
         this.player = player;
+        this.stationService = stationService;
     }
 
     @Override
@@ -69,7 +78,10 @@ public class InteractiveShell implements ApplicationRunner {
                 "exit", "quit", "çıkış", "cikis", "q"
         );
 
-        // Completer that combines registered commands + built-in commands
+        // Commands that accept a station ID as an option value, mapped to their option flag(s)
+        Set<String> stationIdOptions = Set.of("-i", "--istasyon", "--id");
+
+        // Completer that combines registered commands + built-in commands + value completions
         Completer completer = (reader, line, candidates) -> {
             String word = line.word();
             int wordIndex = line.wordIndex();
@@ -88,22 +100,66 @@ public class InteractiveShell implements ApplicationRunner {
                     }
                 });
             } else {
-                // Complete options for the current command
                 String cmdName = line.words().getFirst();
-                var cmd = commandRegistry.getCommandByName(cmdName);
-                if (cmd != null && word.startsWith("-")) {
-                    cmd.getOptions().forEach(opt -> {
-                        String longOpt = "--" + opt.longName();
-                        String shortOpt = "-" + opt.shortName();
-                        if (longOpt.startsWith(word)) {
-                            candidates.add(new Candidate(longOpt, longOpt,
-                                    null, opt.description(), null, null, true));
-                        }
-                        if (shortOpt.startsWith(word)) {
-                            candidates.add(new Candidate(shortOpt, shortOpt,
-                                    null, opt.description(), null, null, true));
-                        }
-                    });
+                String prevWord = wordIndex >= 1 ? line.words().get(wordIndex - 1) : null;
+                String query = word.toLowerCase(TR);
+
+                if (prevWord != null && stationIdOptions.contains(prevWord)
+                        && Set.of("cal", "favori", "sil").contains(cmdName)) {
+                    // Station ID value completion — contains match on ID or name
+                    stationService.getAllStations().stream()
+                            .filter(s -> s.id().toLowerCase(TR).contains(query)
+                                    || s.name().toLowerCase(TR).contains(query))
+                            .sorted(Comparator
+                                    .<com.radio.model.RadioStation, Boolean>comparing(
+                                            s -> !s.id().toLowerCase(TR).startsWith(query))
+                                    .thenComparing(Comparator.comparing(s -> s.id().toLowerCase(TR))))
+                            .forEach(s -> {
+                                String display = s.id();
+                                String descr = s.name() + (s.favorite() ? " ★" : "");
+                                candidates.add(new Candidate(s.id(), display,
+                                        s.country(), descr, null, null, true));
+                            });
+
+                } else if (prevWord != null && (prevWord.equals("-i") || prevWord.equals("--isim"))
+                        && cmdName.equals("ulke")) {
+                    // Country name completion
+                    stationService.getCountries().stream()
+                            .filter(c -> c.toLowerCase(TR).contains(query))
+                            .sorted(Comparator
+                                    .<String, Boolean>comparing(c -> !c.toLowerCase(TR).startsWith(query))
+                                    .thenComparing(Comparator.comparing(c -> c.toLowerCase(TR))))
+                            .forEach(c -> candidates.add(new Candidate(c, c, null,
+                                    stationService.getStationsByCountry(c).size() + " istasyon",
+                                    null, null, true)));
+
+                } else if (prevWord != null && (prevWord.equals("-i") || prevWord.equals("--isim"))
+                        && cmdName.equals("tur")) {
+                    // Genre name completion
+                    stationService.getGenres().stream()
+                            .filter(g -> g.toLowerCase(TR).contains(query))
+                            .sorted(Comparator
+                                    .<String, Boolean>comparing(g -> !g.toLowerCase(TR).startsWith(query))
+                                    .thenComparing(Comparator.comparing(g -> g.toLowerCase(TR))))
+                            .forEach(g -> candidates.add(new Candidate(g)));
+
+                } else {
+                    // Complete option flags for the current command
+                    var cmd = commandRegistry.getCommandByName(cmdName);
+                    if (cmd != null && word.startsWith("-")) {
+                        cmd.getOptions().forEach(opt -> {
+                            String longOpt = "--" + opt.longName();
+                            String shortOpt = "-" + opt.shortName();
+                            if (longOpt.startsWith(word)) {
+                                candidates.add(new Candidate(longOpt, longOpt,
+                                        null, opt.description(), null, null, true));
+                            }
+                            if (shortOpt.startsWith(word)) {
+                                candidates.add(new Candidate(shortOpt, shortOpt,
+                                        null, opt.description(), null, null, true));
+                            }
+                        });
+                    }
                 }
             }
         };

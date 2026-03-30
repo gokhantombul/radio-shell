@@ -4,9 +4,9 @@
 
 ```
   ╔══════════════════════════════════════════════════════════════╗
-  ║   ♬  ░░░ RADIO SHELL ░░░  ♬                                ║
-  ║   Terminal FM Radio Player - Türkiye & Dünya                ║
-  ║   v1.0.0 | Spring Boot 4 + Java 25                          ║
+  ║   ♬  ░░░ RADIO SHELL ░░░  ♬                                  ║
+  ║   Terminal FM Radio Player - Türkiye & Dünya                 ║
+  ║   v1.0.0 | Spring Boot 4 + Java 25                           ║
   ╚══════════════════════════════════════════════════════════════╝
 ```
 
