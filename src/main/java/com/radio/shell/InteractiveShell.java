@@ -2,6 +2,8 @@ package com.radio.shell;
 
 import com.radio.player.AudioPlayer;
 import com.radio.service.StationService;
+import com.radio.util.Theme;
+import com.radio.util.ThemeManager;
 import com.radio.util.UIUtils;
 import org.jline.reader.Candidate;
 import org.jline.reader.Completer;
@@ -35,12 +37,6 @@ import java.util.Set;
 @Component
 public class InteractiveShell implements ApplicationRunner {
 
-    private static final String ANSI_CYAN   = "\033[36m";
-    private static final String ANSI_GREEN  = "\033[32m";
-    private static final String ANSI_YELLOW = "\033[33m";
-    private static final String ANSI_RESET  = "\033[0m";
-    private static final String ANSI_BOLD   = "\033[1m";
-
     private static final Locale TR = Locale.forLanguageTag("tr");
 
     private final CommandParser commandParser;
@@ -48,16 +44,23 @@ public class InteractiveShell implements ApplicationRunner {
     private final CommandExecutor commandExecutor;
     private final AudioPlayer player;
     private final StationService stationService;
+    private final ThemeManager themeManager;
 
     public InteractiveShell(CommandParser commandParser,
                             CommandRegistry commandRegistry,
                             AudioPlayer player,
-                            StationService stationService) {
+                            StationService stationService,
+                            ThemeManager themeManager) {
         this.commandParser = commandParser;
         this.commandRegistry = commandRegistry;
         this.commandExecutor = new CommandExecutor(commandRegistry);
         this.player = player;
         this.stationService = stationService;
+        this.themeManager = themeManager;
+    }
+
+    private Theme theme() {
+        return themeManager.getCurrent();
     }
 
     @Override
@@ -143,6 +146,14 @@ public class InteractiveShell implements ApplicationRunner {
                                     .thenComparing(Comparator.comparing(g -> g.toLowerCase(TR))))
                             .forEach(g -> candidates.add(new Candidate(g)));
 
+                } else if (prevWord != null && (prevWord.equals("-i") || prevWord.equals("--isim"))
+                        && cmdName.equals("tema")) {
+                    // Theme name completion
+                    Theme.all().values().stream()
+                            .filter(t -> t.name().startsWith(query))
+                            .forEach(t -> candidates.add(new Candidate(t.name(), t.name(),
+                                    null, t.description(), null, null, true)));
+
                 } else {
                     // Complete option flags for the current command
                     var cmd = commandRegistry.getCommandByName(cmdName);
@@ -200,7 +211,7 @@ public class InteractiveShell implements ApplicationRunner {
 
             if (isExitCommand(line)) {
                 player.stop();
-                out.println("  " + ANSI_YELLOW + "Görüşmek üzere! ♬" + ANSI_RESET);
+                out.println("  " + theme().accent() + "Görüşmek üzere! ♬" + theme().reset());
                 break;
             }
 
@@ -240,32 +251,35 @@ public class InteractiveShell implements ApplicationRunner {
     }
 
     private String getPrompt() {
+        var t = theme();
         if (player.isPlaying() && player.getCurrentStation() != null) {
-            return ANSI_GREEN + ANSI_BOLD + "♬ [" + player.getCurrentStation().name() + "] "
-                    + ANSI_RESET + ANSI_CYAN + ANSI_BOLD + "radio> " + ANSI_RESET;
+            return t.secondary() + t.bold() + "♬ [" + player.getCurrentStation().name() + "] "
+                    + t.reset() + t.primary() + t.bold() + "radio> " + t.reset();
         }
-        return ANSI_CYAN + ANSI_BOLD + "radio> " + ANSI_RESET;
+        return t.primary() + t.bold() + "radio> " + t.reset();
     }
 
     private void printBanner(PrintWriter out) {
+        var t = theme();
         out.println();
         String[] lines = {
             "♬  ░░░ RADIO SHELL ░░░  ♬",
             "Terminal FM Radio Player - Türkiye & Dünya",
             "v1.0.0 | Spring Boot 4 + Java 25"
         };
-        UIUtils.printBoxed(out, lines, 60, ANSI_CYAN + ANSI_BOLD);
+        UIUtils.printBoxed(out, lines, 60, t.primary() + t.bold());
         out.println();
-        out.println("  " + ANSI_YELLOW + "Komutlar için 'help', çıkmak için 'exit' yazın." + ANSI_RESET);
+        out.println("  " + t.accent() + "Komutlar için 'help', çıkmak için 'exit' yazın." + t.reset());
         out.println();
     }
 
     private void printHelp(PrintWriter out) {
+        var t = theme();
         out.println();
         String[] lines = { "KOMUT LİSTESİ" };
-        UIUtils.printBoxed(out, lines, 60, ANSI_CYAN);
+        UIUtils.printBoxed(out, lines, 60, t.primary());
         out.println();
-        out.println("  " + ANSI_BOLD + "İSTASYON LİSTELEME" + ANSI_RESET);
+        out.println("  " + t.bold() + "İSTASYON LİSTELEME" + t.reset());
         out.println("    listele              - Tüm istasyonları listeler");
         out.println("    turkiye              - Türkiye istasyonlarını listeler");
         out.println("    ulkeler              - Mevcut ülkeleri listeler");
@@ -274,29 +288,38 @@ public class InteractiveShell implements ApplicationRunner {
         out.println("    tur -i <tür>         - Belirli türdeki istasyonlar");
         out.println("    ara -s <arama>       - İstasyon arama");
         out.println();
-        out.println("  " + ANSI_BOLD + "OYNATMA" + ANSI_RESET);
+        out.println("  " + t.bold() + "OYNATMA" + t.reset());
         out.println("    cal -i <id>          - İstasyonu çalar (ID veya isim)");
         out.println("    dur                  - Çalmayı durdurur");
         out.println("    durum                - Şu an çalanı gösterir");
         out.println("    ses -s <0-100>       - Ses seviyesini ayarlar");
+        out.println("    sonraki              - Listedeki sonraki istasyona geçer");
+        out.println("    onceki               - Listedeki önceki istasyona geçer");
+        out.println("    karistir             - Rastgele istasyon çalar");
+        out.println("      -u <ülke>          - Belirli ülkeden rastgele");
+        out.println("      -t <tür>           - Belirli türden rastgele");
+        out.println("      -f                 - Favorilerden rastgele");
         out.println();
-        out.println("  " + ANSI_BOLD + "KAYIT" + ANSI_RESET);
+        out.println("  " + t.bold() + "KAYIT" + t.reset());
         out.println("    kaydet               - Yayını MP3 olarak kaydetmeye başlar");
         out.println("    kayitdur             - Kaydı durdurur ve dosyayı kaydeder");
         out.println();
-        out.println("  " + ANSI_BOLD + "FAVORİLER" + ANSI_RESET);
+        out.println("  " + t.bold() + "FAVORİLER" + t.reset());
         out.println("    favori -i <id>       - Favorilere ekle/çıkar");
         out.println("    favoriler            - Favori listesi");
         out.println();
-        out.println("  " + ANSI_BOLD + "YÖNETİM" + ANSI_RESET);
+        out.println("  " + t.bold() + "YÖNETİM" + t.reset());
+        out.println("    kontrol              - Tüm istasyonların URL'lerini kontrol eder");
+        out.println("    kontrol -i <id>      - Belirli istasyonu kontrol eder");
         out.println("    ekle --id <id> --isim <isim> --ulke <ülke> --tur <tür> --url <url>");
         out.println("    sil --id <id>        - Özel istasyonu siler");
+        out.println("    tema                 - Renk temasını değiştirir");
         out.println();
-        out.println("  " + ANSI_BOLD + "DİĞER" + ANSI_RESET);
+        out.println("  " + t.bold() + "DİĞER" + t.reset());
         out.println("    help / ?             - Bu yardım menüsü");
         out.println("    exit / q             - Çıkış");
         out.println();
-        out.println("  " + ANSI_YELLOW + "Örnek: cal -i tr-powerfm" + ANSI_RESET);
+        out.println("  " + t.accent() + "Örnek: cal -i tr-powerfm" + t.reset());
         out.println();
     }
 }

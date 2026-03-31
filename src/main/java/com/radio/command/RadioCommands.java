@@ -3,6 +3,8 @@ package com.radio.command;
 import com.radio.model.RadioStation;
 import com.radio.player.AudioPlayer;
 import com.radio.service.StationService;
+import com.radio.util.Theme;
+import com.radio.util.ThemeManager;
 import com.radio.util.UIUtils;
 import org.springframework.shell.core.command.annotation.Command;
 import org.springframework.shell.core.command.annotation.Option;
@@ -11,29 +13,47 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Component
 public class RadioCommands {
 
     private final StationService stationService;
     private final AudioPlayer player;
+    private final ThemeManager themeManager;
 
-    public RadioCommands(StationService stationService, AudioPlayer player) {
+    // Navigation context: last displayed station list for sonraki/onceki commands
+    private List<RadioStation> navigationList = List.of();
+
+    public RadioCommands(StationService stationService, AudioPlayer player, ThemeManager themeManager) {
         this.stationService = stationService;
         this.player = player;
+        this.themeManager = themeManager;
     }
 
     @Command(name = "listele", description = "Tüm radyo istasyonlarını listeler", group = "Radio")
     public String listAll() {
-        return formatStationTable(stationService.getAllStations());
+        var stations = stationService.getAllStations();
+        navigationList = stations;
+        return formatStationTable(stations);
     }
 
     @Command(name = "turkiye", description = "Türkiye radyo istasyonlarını listeler", group = "Radio")
     public String turkiye() {
-        return formatStationTable(stationService.getTurkishStations());
+        var stations = stationService.getTurkishStations();
+        navigationList = stations;
+        return formatStationTable(stations);
     }
 
     @Command(name = "ulkeler", description = "Mevcut ülkeleri listeler", group = "Radio")
@@ -55,6 +75,7 @@ public class RadioCommands {
         if (stations.isEmpty()) {
             return "  ⚠ '%s' ülkesi için istasyon bulunamadı. 'ulkeler' komutu ile mevcut ülkeleri görün.".formatted(country);
         }
+        navigationList = stations;
         return formatStationTable(stations);
     }
 
@@ -76,6 +97,7 @@ public class RadioCommands {
         if (stations.isEmpty()) {
             return "  ⚠ '%s' türü için istasyon bulunamadı.".formatted(genre);
         }
+        navigationList = stations;
         return formatStationTable(stations);
     }
 
@@ -86,6 +108,7 @@ public class RadioCommands {
         if (stations.isEmpty()) {
             return "  ⚠ '%s' için sonuç bulunamadı.".formatted(query);
         }
+        navigationList = stations;
         return "  🔍 '%s' araması - %d sonuç:\n".formatted(query, stations.size()) + formatStationTable(stations);
     }
 
@@ -164,6 +187,115 @@ public class RadioCommands {
         return "  🔊 Ses: %%%d [%s]".formatted(player.getVolume(), bar);
     }
 
+    @Command(name = "sonraki", description = "Listedeki bir sonraki istasyona geçer", group = "Radio")
+    public String next() {
+        return navigate(1);
+    }
+
+    @Command(name = "onceki", description = "Listedeki bir önceki istasyona geçer", group = "Radio")
+    public String previous() {
+        return navigate(-1);
+    }
+
+    @Command(name = "karistir", description = "Rastgele bir istasyon çalar (opsiyonel: ülke veya tür filtresi)", group = "Radio")
+    public String shuffle(
+            @Option(longName = "ulke", shortName = 'u', required = false, description = "Ülke filtresi") String country,
+            @Option(longName = "tur", shortName = 't', required = false, description = "Tür filtresi") String genre,
+            @Option(longName = "favori", shortName = 'f', required = false, description = "Sadece favorilerden", defaultValue = "false") boolean favoritesOnly) {
+
+        List<RadioStation> pool;
+        String source;
+
+        if (favoritesOnly) {
+            pool = stationService.getFavorites();
+            source = "favoriler";
+        } else if (country != null && !country.isBlank()) {
+            pool = stationService.getStationsByCountry(country);
+            source = country;
+        } else if (genre != null && !genre.isBlank()) {
+            pool = stationService.getStationsByGenre(genre);
+            source = genre;
+        } else {
+            pool = stationService.getAllStations();
+            source = "tüm istasyonlar";
+        }
+
+        if (pool.isEmpty()) {
+            return "  ⚠ '%s' için istasyon bulunamadı.".formatted(source);
+        }
+
+        // Shuffle and set as navigation list
+        var shuffled = new ArrayList<>(pool);
+        Collections.shuffle(shuffled);
+        navigationList = shuffled;
+
+        var station = shuffled.getFirst();
+        var sb = new StringBuilder();
+        sb.append("\n  🎲 Rastgele seçim (%s - %d istasyon arasından)\n".formatted(source, pool.size()));
+        sb.append("  ♬ Bağlanıyor: %s (%s)\n".formatted(station.name(), station.country()));
+        sb.append("  ► Tür: %s\n".formatted(station.genre()));
+        sb.append("  ► Ses: %%%d\n".formatted(player.getVolume()));
+
+        PrintWriter progressOut = new PrintWriter(System.out, true, StandardCharsets.UTF_8);
+        boolean success = player.play(station, progressOut);
+        if (success) {
+            sb.append("  ✓ Çalınıyor! 'sonraki' ile karışık sırada devam edin.\n");
+        } else {
+            sb.append("  ✗ Bağlantı kurulamadı. 'karistir' ile tekrar deneyin.\n");
+        }
+        return sb.toString();
+    }
+
+    private String navigate(int direction) {
+        if (!player.isPlaying()) {
+            return "  ⚠ Şu an çalan bir istasyon yok. Önce 'cal -i <id>' ile bir istasyon çalın.";
+        }
+
+        if (navigationList.isEmpty()) {
+            navigationList = stationService.getAllStations();
+        }
+
+        var current = player.getCurrentStation();
+        int currentIndex = -1;
+        for (int i = 0; i < navigationList.size(); i++) {
+            if (navigationList.get(i).id().equals(current.id())) {
+                currentIndex = i;
+                break;
+            }
+        }
+
+        if (currentIndex == -1) {
+            navigationList = stationService.getAllStations();
+            for (int i = 0; i < navigationList.size(); i++) {
+                if (navigationList.get(i).id().equals(current.id())) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+        }
+
+        int nextIndex = (currentIndex + direction + navigationList.size()) % navigationList.size();
+        var nextStation = navigationList.get(nextIndex);
+
+        var sb = new StringBuilder();
+        sb.append("\n  %s %s (%d/%d)\n".formatted(
+                direction > 0 ? "⏭" : "⏮",
+                direction > 0 ? "Sonraki istasyon" : "Önceki istasyon",
+                nextIndex + 1, navigationList.size()));
+        sb.append("  ♬ Bağlanıyor: %s (%s)\n".formatted(nextStation.name(), nextStation.country()));
+        sb.append("  ► Tür: %s\n".formatted(nextStation.genre()));
+        sb.append("  ► Ses: %%%d\n".formatted(player.getVolume()));
+
+        PrintWriter progressOut = new PrintWriter(System.out, true, StandardCharsets.UTF_8);
+        boolean success = player.play(nextStation, progressOut);
+        if (success) {
+            sb.append("  ✓ Çalınıyor! 'sonraki' veya 'onceki' ile geçiş yapabilirsiniz.\n");
+        } else {
+            sb.append("  ✗ Bağlantı kurulamadı. Bir sonraki istasyonu deneyin.\n");
+        }
+        return sb.toString();
+    }
+
     @Command(name = "favori", description = "İstasyonu favorilere ekler/çıkarır", group = "Favoriler")
     public String favorite(
             @Option(longName = "istasyon", shortName = 'i', required = true, description = "İstasyon ID") String stationId) {
@@ -185,6 +317,7 @@ public class RadioCommands {
         if (favs.isEmpty()) {
             return "  ⚠ Henüz favori istasyon eklenmemiş. 'favori -i <istasyon-id>' ile ekleyin.";
         }
+        navigationList = favs;
         return "  ★ Favori İstasyonlar:\n" + formatStationTable(favs);
     }
 
@@ -216,6 +349,138 @@ public class RadioCommands {
         }
         Path file = player.stopRecording();
         return "  ■ Kayıt durduruldu.\n  ► Dosya: %s".formatted(file);
+    }
+
+    @Command(name = "tema", description = "Renk temasını değiştirir", group = "Yönetim")
+    public String theme(
+            @Option(longName = "isim", shortName = 'i', required = false, description = "Tema adı") String name) {
+
+        if (name == null || name.isBlank()) {
+            var sb = new StringBuilder();
+            sb.append("\n").append(UIUtils.getBoxedString(new String[]{"RENK TEMALARI"}, 44)).append("\n");
+            var current = themeManager.getCurrent();
+            for (var theme : Theme.all().values()) {
+                String active = theme.name().equals(current.name()) ? " ◄ aktif" : "";
+                String preview = theme.primary() + "██" + theme.secondary() + "██" + theme.accent() + "██" + theme.reset();
+                sb.append("  %s %-14s %s%s\n".formatted(preview, theme.name(), theme.description(), active));
+            }
+            sb.append("\n  Kullanım: tema -i <tema-adı>\n");
+            return sb.toString();
+        }
+
+        if (themeManager.setTheme(name)) {
+            var t = themeManager.getCurrent();
+            String preview = t.primary() + "██" + t.secondary() + "██" + t.accent() + "██" + t.reset();
+            return "  ✓ Tema değiştirildi: %s %s — %s".formatted(preview, t.name(), t.description());
+        }
+        return "  ⚠ '%s' teması bulunamadı. 'tema' yazarak mevcut temaları görün.".formatted(name);
+    }
+
+    @Command(name = "kontrol", description = "İstasyonların akış URL'lerini kontrol eder", group = "Yönetim")
+    public String healthCheck(
+            @Option(longName = "istasyon", shortName = 'i', required = false, description = "Belirli istasyon ID (boş bırakılırsa tümü kontrol edilir)") String stationId) {
+
+        List<RadioStation> toCheck;
+        if (stationId != null && !stationId.isBlank()) {
+            var opt = stationService.findStation(stationId);
+            if (opt.isEmpty()) {
+                return "  ⚠ '%s' istasyonu bulunamadı.".formatted(stationId);
+            }
+            toCheck = List.of(opt.get());
+        } else {
+            toCheck = stationService.getAllStations();
+        }
+
+        var sb = new StringBuilder();
+        sb.append("\n").append(UIUtils.getBoxedString(new String[]{"İSTASYON SAĞLIK KONTROLÜ"}, 44)).append("\n");
+        sb.append("  %d istasyon kontrol ediliyor...\n\n".formatted(toCheck.size()));
+
+        PrintWriter progressOut = new PrintWriter(System.out, true, StandardCharsets.UTF_8);
+
+        record CheckResult(RadioStation station, boolean alive, int statusCode, String error) {}
+
+        var results = new ConcurrentLinkedQueue<CheckResult>();
+
+        try (var client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(5))
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .build()) {
+
+            var futures = toCheck.stream()
+                    .map(station -> {
+                        HttpRequest request;
+                        try {
+                            request = HttpRequest.newBuilder()
+                                    .uri(URI.create(station.url()))
+                                    .timeout(Duration.ofSeconds(8))
+                                    .method("HEAD", HttpRequest.BodyPublishers.noBody())
+                                    .build();
+                        } catch (IllegalArgumentException e) {
+                            results.add(new CheckResult(station, false, 0, "Geçersiz URL"));
+                            return CompletableFuture.completedFuture((Void) null);
+                        }
+
+                        return client.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                                .thenAccept(resp -> results.add(new CheckResult(station, resp.statusCode() < 400, resp.statusCode(), null)))
+                                .exceptionally(ex -> {
+                                    // HEAD may be rejected, try GET
+                                    HttpRequest getReq = HttpRequest.newBuilder()
+                                            .uri(URI.create(station.url()))
+                                            .timeout(Duration.ofSeconds(8))
+                                            .GET()
+                                            .build();
+                                    try {
+                                        var resp = client.send(getReq, HttpResponse.BodyHandlers.discarding());
+                                        results.add(new CheckResult(station, resp.statusCode() < 400, resp.statusCode(), null));
+                                    } catch (Exception e2) {
+                                        results.add(new CheckResult(station, false, 0, "Bağlantı hatası"));
+                                    }
+                                    return null;
+                                });
+                    })
+                    .toList();
+
+            // Show progress
+            int total = futures.size();
+            for (int i = 0; i < total; i++) {
+                futures.get(i).join();
+                int done = i + 1;
+                int pct = done * 100 / total;
+                int filled = pct / 5;
+                String bar = "█".repeat(filled) + "░".repeat(20 - filled);
+                progressOut.print("\r  [%s] %%%d (%d/%d)".formatted(bar, pct, done, total));
+                progressOut.flush();
+            }
+            progressOut.print("\r" + " ".repeat(50) + "\r");
+            progressOut.flush();
+        }
+
+        // Sort results: alive first, then by name
+        var sorted = results.stream()
+                .sorted((a, b) -> {
+                    if (a.alive() != b.alive()) return a.alive() ? -1 : 1;
+                    return a.station().name().compareTo(b.station().name());
+                })
+                .toList();
+
+        int alive = (int) sorted.stream().filter(CheckResult::alive).count();
+        int dead = sorted.size() - alive;
+
+        sb.append("  ┌─────────────────────────┬──────────────────────┬────────┐\n");
+        sb.append("  │ İstasyon                │ ID                   │ Durum  │\n");
+        sb.append("  ├─────────────────────────┼──────────────────────┼────────┤\n");
+
+        for (var r : sorted) {
+            String status = r.alive() ? "  ✓   " : "  ✗   ";
+            sb.append("  │ %s │ %s │%s│\n".formatted(
+                    UIUtils.padRight(UIUtils.truncate(r.station().name(), 23), 23),
+                    UIUtils.padRight(UIUtils.truncate(r.station().id(), 20), 20),
+                    status));
+        }
+        sb.append("  └─────────────────────────┴──────────────────────┴────────┘\n");
+        sb.append("  ✓ Aktif: %d | ✗ Erişilemez: %d | Toplam: %d\n".formatted(alive, dead, sorted.size()));
+
+        return sb.toString();
     }
 
     @Command(name = "ekle", description = "Yeni özel istasyon ekler", group = "Yönetim")
