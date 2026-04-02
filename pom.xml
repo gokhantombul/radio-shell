@@ -42,6 +42,13 @@
                 <configuration>
                     <jvmArguments>--enable-native-access=ALL-UNNAMED</jvmArguments>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>process-aot</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -50,6 +57,17 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <release>${java.version}</release>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.graalvm.buildtools</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.radio.RadioShellApplication</mainClass>
+                    <buildArgs>
+                        <arg>--enable-native-access=ALL-UNNAMED</arg>
+                        <arg>-H:+UnlockExperimentalVMOptions</arg>
+                    </buildArgs>
                 </configuration>
             </plugin>
         </plugins>
