@@ -13,6 +13,7 @@ public class RadioConfig {
     private StationsConfig stations = new StationsConfig();
     private String favoritesFile;
     private String customStationsFile;
+    private String playlistsFile;
     private String recordingsDir;
 
     public PlayerConfig getPlayer() { return player; }
@@ -23,6 +24,8 @@ public class RadioConfig {
     public void setFavoritesFile(String f) { this.favoritesFile = f; }
     public String getCustomStationsFile() { return customStationsFile; }
     public void setCustomStationsFile(String f) { this.customStationsFile = f; }
+    public String getPlaylistsFile() { return playlistsFile; }
+    public void setPlaylistsFile(String f) { this.playlistsFile = f; }
     public String getRecordingsDir() { return recordingsDir; }
     public void setRecordingsDir(String d) { this.recordingsDir = d; }
 
