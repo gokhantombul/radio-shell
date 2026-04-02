@@ -2,7 +2,8 @@
 # Radio Shell - Terminal FM Radio Player
 # Kullanım: ./radio.sh
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Sembolik linkin asıl hedefini bularak gerçek proje dizinini alır
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 JAR_FILE="$SCRIPT_DIR/target/radio-shell-1.0.0.jar"
 
 if [ ! -f "$JAR_FILE" ]; then
@@ -16,4 +17,4 @@ if ! command -v ffplay &> /dev/null; then
     exit 1
 fi
 
-exec java --enable-native-access=ALL-UNNAMED -jar "$JAR_FILE"
+exec java --enable-native-access=ALL-UNNAMED -XX:TieredStopAtLevel=1 -Dspring.main.lazy-initialization=true -jar "$JAR_FILE"
