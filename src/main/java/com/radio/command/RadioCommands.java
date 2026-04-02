@@ -188,12 +188,12 @@ public class RadioCommands {
     }
 
     @Command(name = "sonraki", description = "Listedeki bir sonraki istasyona geçer", group = "Radio")
-    public String next() {
+    public String handleNext() {
         return navigate(1);
     }
 
     @Command(name = "onceki", description = "Listedeki bir önceki istasyona geçer", group = "Radio")
-    public String previous() {
+    public String handlePrevious() {
         return navigate(-1);
     }
 

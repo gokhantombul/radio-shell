@@ -36,7 +36,8 @@ fi
 
 # 2. Derleme
 echo -e "${YELLOW}[2/4] Uygulama native binary olarak derleniyor (Bu işlem birkaç dakika sürebilir)...${NC}"
-mvn clean native:compile -Pnative -DskipTests
+# Native profile'ı pom.xml'de değil buildtools plugininde tanımlı olduğu için doğrudan compile yeterli
+mvn clean native:compile -DskipTests
 
 # 3. Kurulum
 echo -e "${YELLOW}[3/4] Kurulum yapılıyor...${NC}"
