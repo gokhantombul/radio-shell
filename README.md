@@ -36,6 +36,37 @@ mvn clean package -DskipTests
 ./radio.sh
 ```
 
+### Yöntem 1.5 — `radio` Komutunu Global Yap (macOS/Linux/Windows)
+
+Bu adımla projeyi her terminalden sadece `radio` yazarak açabilirsiniz.
+
+```bash
+# 1) JAR üret
+mvn clean package -DskipTests
+
+# 2) Global komutu kur (macOS / Linux)
+./scripts/install-command.sh
+
+# 3) Yeni terminal aç ve çalıştır
+radio
+```
+
+**Windows PowerShell:**
+
+```powershell
+# 1) JAR üret
+mvn clean package -DskipTests
+
+# 2) Global komutu kur
+.\scripts\install-command.ps1
+
+# 3) Yeni terminal aç ve çalıştır
+radio
+```
+
+> Not: Windows'ta `install-command.ps1`, `%USERPROFILE%\bin\radio.cmd` oluşturur.
+> `%USERPROFILE%\bin` PATH'e eklendiğinde komut her terminalden çalışır.
+
 ### Yöntem 2 — Docker
 
 ```bash
