@@ -25,6 +25,7 @@ public class AudioPlayer {
     private final RadioConfig config;
     private Process currentProcess;
     private RadioStation currentStation;
+    private String currentSongTitle;
     private int volume = 100;
 
     private Process recordProcess;
@@ -43,7 +44,15 @@ public class AudioPlayer {
 
         List<String> command = new ArrayList<>();
         command.add(config.getPlayer().getCommand());
-        command.addAll(config.getPlayer().getArgs());
+        for (String arg : config.getPlayer().getArgs()) {
+            if ("quiet".equals(arg)) {
+                command.add("info");
+            } else if ("-loglevel".equals(arg)) {
+                command.add("-loglevel");
+            } else {
+                command.add(arg);
+            }
+        }
         command.add("-volume");
         command.add(String.valueOf(volume));
         command.add(station.url());
@@ -51,9 +60,35 @@ public class AudioPlayer {
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.redirectErrorStream(true);
-            pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
             currentProcess = pb.start();
             currentStation = station;
+            currentSongTitle = null;
+
+            // Background thread to parse metadata
+            Thread metadataThread = new Thread(() -> {
+                try (var reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(currentProcess.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        if (line.contains("StreamTitle")) {
+                            int start = line.indexOf("StreamTitle='") + 13;
+                            if (start > 12) {
+                                int end = line.indexOf("';", start);
+                                if (end > start) {
+                                    String title = line.substring(start, end).trim();
+                                    synchronized (this) {
+                                        this.currentSongTitle = title;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (IOException e) {
+                    // Process ended or stream closed
+                }
+            }, "MetadataParser");
+            metadataThread.setDaemon(true);
+            metadataThread.start();
 
             // Show connection progress animation
             String[] spinner = {"\u28FE", "\u28FD", "\u28FB", "\u28BF", "\u287F", "\u28DF", "\u28EF", "\u28F7"};
@@ -112,6 +147,10 @@ public class AudioPlayer {
 
     public synchronized RadioStation getCurrentStation() {
         return currentStation;
+    }
+
+    public synchronized String getCurrentSongTitle() {
+        return currentSongTitle;
     }
 
     public synchronized int getVolume() {

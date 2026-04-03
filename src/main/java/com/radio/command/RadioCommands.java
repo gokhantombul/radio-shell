@@ -166,9 +166,13 @@ public class RadioCommands {
             return "  ⏸ Şu an çalan bir istasyon yok.";
         }
         var station = player.getCurrentStation();
+        var song = player.getCurrentSongTitle();
         var sb = new StringBuilder();
         sb.append("\n").append(UIUtils.getBoxedString(new String[]{"ŞU AN ÇALIYOR"}, 38)).append("\n");
         sb.append("  ♬ %s\n".formatted(station.name()));
+        if (song != null && !song.isBlank()) {
+            sb.append("  ❯❯ %s\n".formatted(song));
+        }
         sb.append("  ► Ülke: %s\n".formatted(station.country()));
         sb.append("  ► Tür:  %s\n".formatted(station.genre()));
         sb.append("  ► Ses:  %%%d\n".formatted(player.getVolume()));
