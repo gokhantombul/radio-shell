@@ -193,6 +193,14 @@
       "favorite": false
     },
     {
+      "id": "tr-palstation",
+      "name": "Pal Station",
+      "country": "Türkiye",
+      "genre": "Yabancı Pop",
+      "url": "http://shoutcast.radyogrup.com:1020/",
+      "favorite": true
+    },
+    {
       "id": "tr-alemfm",
       "name": "Alem FM",
       "country": "Türkiye",
