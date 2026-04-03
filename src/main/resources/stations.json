@@ -289,6 +289,46 @@
       "favorite": false
     },
     {
+      "id": "tr-kralrock",
+      "name": "Kral Rock",
+      "country": "Türkiye",
+      "genre": "Rock/Indie",
+      "url": "https://dygedge.radyotvonline.net/kralrock/playlist.m3u8",
+      "favorite": false
+    },
+    {
+      "id": "tr-joyturk-rock",
+      "name": "JoyTürk Rock",
+      "country": "Türkiye",
+      "genre": "Rock/Indie",
+      "url": "http://23613.live.streamtheworld.com/JOYTURK_ROCK128AAC.aac",
+      "favorite": false
+    },
+    {
+      "id": "tr-max-fm",
+      "name": "Max FM",
+      "country": "Türkiye",
+      "genre": "Rock/Indie",
+      "url": "http://live2.radyotvonline.com:8025/",
+      "favorite": false
+    },
+    {
+      "id": "tr-radyo-odtu-rock",
+      "name": "Radyo ODTÜ Rock",
+      "country": "Türkiye",
+      "genre": "Rock/Indie",
+      "url": "https://stream3.radyoodtu.com.tr:8000/rock",
+      "favorite": false
+    },
+    {
+      "id": "tr-kent-fm",
+      "name": "Kent FM",
+      "country": "Türkiye",
+      "genre": "Rock/Indie",
+      "url": "https://moondigitalmaster.radyotvonline.net/kentfm/playlist.m3u8",
+      "favorite": false
+    },
+    {
       "id": "uk-bbc-radio1",
       "name": "BBC Radio 1",
       "country": "UK",
@@ -534,6 +574,86 @@
       "country": "Internet",
       "genre": "Deep House",
       "url": "https://ice2.somafm.com/deepspaceone-128-mp3",
+      "favorite": false
+    },
+    {
+      "id": "de-rock-antenne",
+      "name": "Rock Antenne",
+      "country": "Almanya",
+      "genre": "Rock/Indie",
+      "url": "http://mp3channels.webradio.rockantenne.de/rockantenne",
+      "favorite": false
+    },
+    {
+      "id": "world-rp-rock",
+      "name": "Radio Paradise Rock",
+      "country": "USA/World",
+      "genre": "Rock/Indie",
+      "url": "http://stream.radioparadise.com/rock-320",
+      "favorite": false
+    },
+    {
+      "id": "it-virgin-classic",
+      "name": "Virgin Radio Classic Rock",
+      "country": "İtalya",
+      "genre": "Rock/Indie",
+      "url": "http://icy.unitedradio.it/VirginRockClassics.mp3",
+      "favorite": false
+    },
+    {
+      "id": "es-rock-fm",
+      "name": "Rock FM",
+      "country": "İspanya",
+      "genre": "Rock/Indie",
+      "url": "http://rockfm.cope.stream.flumotion.com/cope/rockfm/playlist.m3u8",
+      "favorite": false
+    },
+    {
+      "id": "de-radio-bob-classic",
+      "name": "Radio BOB! Classic Rock",
+      "country": "Almanya",
+      "genre": "Rock/Indie",
+      "url": "http://streams.radiobob.de/bob-classicrock/mp3-192/streams.radiobob.de/",
+      "favorite": false
+    },
+    {
+      "id": "us-hard-rock-heaven",
+      "name": "Hard Rock Heaven",
+      "country": "USA",
+      "genre": "Rock/Indie",
+      "url": "http://hydra.cdnstream.com/1521_128",
+      "favorite": false
+    },
+    {
+      "id": "nl-arrow-classic",
+      "name": "Arrow Classic Rock",
+      "country": "Hollanda",
+      "genre": "Rock/Indie",
+      "url": "https://stream.player.arrow.nl/arrowcr",
+      "favorite": false
+    },
+    {
+      "id": "uk-virgin-radio",
+      "name": "Virgin Radio UK",
+      "country": "UK",
+      "genre": "Rock/Indie",
+      "url": "https://radio.virginradio.co.uk/stream",
+      "favorite": false
+    },
+    {
+      "id": "nz-the-sound",
+      "name": "The Sound",
+      "country": "New Zealand",
+      "genre": "Rock/Indie",
+      "url": "https://mediaworks.streamguys1.com/sound_net/playlist.m3u8",
+      "favorite": false
+    },
+    {
+      "id": "uk-radio-caroline",
+      "name": "Radio Caroline",
+      "country": "UK",
+      "genre": "Rock/Indie",
+      "url": "http://78.129.202.200:8040/;",
       "favorite": false
     }
   ]
