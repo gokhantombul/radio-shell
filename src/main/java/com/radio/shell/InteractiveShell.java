@@ -253,7 +253,10 @@ public class InteractiveShell implements ApplicationRunner {
     private String getPrompt() {
         var t = theme();
         if (player.isPlaying() && player.getCurrentStation() != null) {
-            return t.secondary() + t.bold() + "♬ [" + player.getCurrentStation().name() + "] "
+            var station = player.getCurrentStation();
+            var song = player.getCurrentSongTitle();
+            var info = station.name() + (song != null && !song.isBlank() ? " - " + song : "");
+            return t.secondary() + t.bold() + "♬ [" + info + "] "
                     + t.reset() + t.primary() + t.bold() + "radio> " + t.reset();
         }
         return t.primary() + t.bold() + "radio> " + t.reset();
