@@ -15,8 +15,6 @@ import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
-import org.jline.utils.AttributedString;
-import org.jline.utils.Status;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.shell.core.InputReader;
@@ -76,8 +74,6 @@ public class InteractiveShell implements ApplicationRunner {
                 .system(true)
                 .encoding(StandardCharsets.UTF_8)
                 .build();
-
-        Status statusBar = Status.getStatus(terminal);
 
         // Built-in commands for completion
         List<String> builtinCommands = List.of(
@@ -199,23 +195,6 @@ public class InteractiveShell implements ApplicationRunner {
 
         printBanner(out);
 
-        // Background thread to update status bar
-        Thread statusThread = new Thread(() -> {
-            while (true) {
-                try {
-                    updateStatusBar(statusBar, terminal);
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                } catch (Exception e) {
-                    // Ignore status bar errors
-                }
-            }
-        }, "StatusBarUpdater");
-        statusThread.setDaemon(true);
-        statusThread.start();
-
         while (true) {
             String line;
             try {
@@ -273,45 +252,14 @@ public class InteractiveShell implements ApplicationRunner {
 
     private String getPrompt() {
         var t = theme();
+        if (player.isPlaying() && player.getCurrentStation() != null) {
+            var station = player.getCurrentStation();
+            var song = player.getCurrentSongTitle();
+            var info = station.name() + (song != null && !song.isBlank() ? " - " + song : "");
+            return t.secondary() + t.bold() + "♬ [" + info + "] "
+                    + t.reset() + t.primary() + t.bold() + "radio> " + t.reset();
+        }
         return t.primary() + t.bold() + "radio> " + t.reset();
-    }
-
-    private void updateStatusBar(Status status, Terminal terminal) {
-        if (status == null) return;
-
-        if (!player.isPlaying()) {
-            status.update(null);
-            return;
-        }
-
-        var t = theme();
-        var station = player.getCurrentStation();
-        var song = player.getCurrentSongTitle();
-        var vol = player.getVolume();
-        var recording = player.isRecording();
-
-        StringBuilder sb = new StringBuilder();
-        sb.append(t.secondary()).append(t.bold()).append(" ♬ ").append(station.name()).append(t.reset());
-
-        if (song != null && !song.isBlank()) {
-            sb.append(t.primary()).append(" | ").append(t.reset())
-              .append(t.accent()).append("❯❯ ").append(song).append(t.reset());
-        }
-
-        sb.append(t.primary()).append(" | ").append(t.reset())
-          .append("🔊 %").append(vol);
-
-        if (recording) {
-            sb.append(t.primary()).append(" | ").append(t.reset())
-              .append(t.bold()).append("\033[31m⏺ Kayit\033[0m").append(t.reset());
-        }
-
-        // Draw a separator line if terminal is wide enough
-        String line = "─".repeat(Math.max(0, terminal.getWidth()));
-        status.update(List.of(
-            AttributedString.fromAnsi(t.primary() + line + t.reset()),
-            AttributedString.fromAnsi(sb.toString())
-        ));
     }
 
     private void printBanner(PrintWriter out) {
