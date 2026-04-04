@@ -329,6 +329,166 @@
       "favorite": false
     },
     {
+      "id": "tr-karadenizfm",
+      "name": "Karadeniz FM",
+      "country": "Türkiye",
+      "genre": "Karadeniz Müziği",
+      "url": "https://moondigitaledge.radyotvonline.net/karadenizfm/playlist.m3u8",
+      "favorite": false
+    },
+    {
+      "id": "tr-trt-trabzon",
+      "name": "TRT Trabzon",
+      "country": "Türkiye",
+      "genre": "Karadeniz Müziği",
+      "url": "https://radio-trttrabzon.medya.trt.com.tr/master.m3u8",
+      "favorite": false
+    },
+    {
+      "id": "tr-kuzeyfm",
+      "name": "Kuzey FM",
+      "country": "Türkiye",
+      "genre": "Karadeniz Müziği",
+      "url": "http://yayin.yayindakiler.com:3028/;",
+      "favorite": false
+    },
+    {
+      "id": "tr-ordufm",
+      "name": "Ordu FM",
+      "country": "Türkiye",
+      "genre": "Karadeniz Müziği",
+      "url": "https://radyo.yayindakiler.com:8012/;",
+      "favorite": false
+    },
+    {
+      "id": "tr-giresunfm",
+      "name": "Giresun FM",
+      "country": "Türkiye",
+      "genre": "Karadeniz Müziği",
+      "url": "http://yayin.canliyayin.org:9482/;",
+      "favorite": false
+    },
+    {
+      "id": "tr-merkezfm",
+      "name": "Merkez FM",
+      "country": "Türkiye",
+      "genre": "Karadeniz Müziği",
+      "url": "http://uydu.radyotvyayini.com:8016/;",
+      "favorite": false
+    },
+    {
+      "id": "tr-radyo08",
+      "name": "Radyo 08",
+      "country": "Türkiye",
+      "genre": "Karadeniz Müziği",
+      "url": "https://sslyayin.netyayin.net:10931/;",
+      "favorite": false
+    },
+    {
+      "id": "tr-radyonet",
+      "name": "Radyo Net",
+      "country": "Türkiye",
+      "genre": "Karadeniz Müziği",
+      "url": "https://sslyayin.netyayin.net:8068/;",
+      "favorite": false
+    },
+    {
+      "id": "tr-ereglifm",
+      "name": "Ereğli FM",
+      "country": "Türkiye",
+      "genre": "Karadeniz Müziği",
+      "url": "http://yayin.yayindakiler.com:3000/;",
+      "favorite": false
+    },
+    {
+      "id": "tr-siran",
+      "name": "Radyo Şiran",
+      "country": "Türkiye",
+      "genre": "Karadeniz Müziği",
+      "url": "https://live.radyositesihazir.com/8078/stream",
+      "favorite": false
+    },
+    {
+      "id": "tr-seymen",
+      "name": "Radyo Seymen",
+      "country": "Türkiye",
+      "genre": "Türk Halk Müziği",
+      "url": "https://yayin.radyoseymen.com.tr:1070/stream",
+      "favorite": false
+    },
+    {
+      "id": "tr-ekin",
+      "name": "Radyo Ekin",
+      "country": "Türkiye",
+      "genre": "Türk Halk Müziği",
+      "url": "https://yayin.turkhosted.com/6006/stream",
+      "favorite": false
+    },
+    {
+      "id": "tr-turkulerle-turkiye",
+      "name": "Türkülerle Türkiye",
+      "country": "Türkiye",
+      "genre": "Türk Halk Müziği",
+      "url": "http://37.247.98.8/stream/22/;",
+      "favorite": false
+    },
+    {
+      "id": "tr-turkuvaz-anadolu",
+      "name": "Turkuvaz Anadolu",
+      "country": "Türkiye",
+      "genre": "Türk Halk Müziği",
+      "url": "http://trkvz-radyolar.ercdn.net/turkuvazanadolu/Playlist.m3u8",
+      "favorite": false
+    },
+    {
+      "id": "tr-munzur",
+      "name": "Radyo Munzur",
+      "country": "Türkiye",
+      "genre": "Türk Halk Müziği",
+      "url": "http://yayin1.yayindakiler.com:3002/;stream.nsv",
+      "favorite": false
+    },
+    {
+      "id": "tr-yarenfm",
+      "name": "Yaren FM",
+      "country": "Türkiye",
+      "genre": "Türk Halk Müziği",
+      "url": "https://yarenfmn.80.yayin.com.tr//stream",
+      "favorite": false
+    },
+    {
+      "id": "tr-turkuradyo",
+      "name": "Türkü Radyo",
+      "country": "Türkiye",
+      "genre": "Türk Halk Müziği",
+      "url": "https://yayin.turkhosted.com/4591/stream",
+      "favorite": false
+    },
+    {
+      "id": "tr-cemradyo",
+      "name": "Cem Radyo",
+      "country": "Türkiye",
+      "genre": "Türk Halk Müziği",
+      "url": "https://erzincan.80.yayin.com.tr/stream",
+      "favorite": false
+    },
+    {
+      "id": "tr-canradyo",
+      "name": "Can Radyo",
+      "country": "Türkiye",
+      "genre": "Türk Halk Müziği",
+      "url": "http://yayin1.yayindakiler.com:3124/;",
+      "favorite": false
+    },
+    {
+      "id": "tr-radyobanko",
+      "name": "Radyo Banko",
+      "country": "Türkiye",
+      "genre": "Türk Halk Müziği",
+      "url": "http://yayin.netradyom.com:9910/RADYOBANKO",
+      "favorite": false
+    },
+    {
       "id": "uk-bbc-radio1",
       "name": "BBC Radio 1",
       "country": "UK",
