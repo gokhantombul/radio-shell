@@ -149,7 +149,7 @@
       "name": "Number One FM",
       "country": "Türkiye",
       "genre": "Pop/Dance",
-      "url": "http://n10101m.mediatriple.net/numberone",
+      "url": "https://dijimedya.radyotvonline.net/numberone",
       "favorite": false
     },
     {
@@ -157,7 +157,7 @@
       "name": "Number One Türk",
       "country": "Türkiye",
       "genre": "Türkçe Pop",
-      "url": "http://n10101m.mediatriple.net/numberoneturk",
+      "url": "https://dijimedya.radyotvonline.net/numberoneturk",
       "favorite": false
     },
     {
@@ -282,10 +282,10 @@
     },
     {
       "id": "tr-arabeskturk",
-      "name": "Arabesk Türk",
+      "name": "Arabesk FM",
       "country": "Türkiye",
       "genre": "Arabesk",
-      "url": "http://yayin.arabeskturk.com:8000/;",
+      "url": "http://yayin.arabeskfm.biz:8042/",
       "favorite": false
     },
     {
