@@ -5,7 +5,7 @@
       "name": "TRT FM",
       "country": "Türkiye",
       "genre": "Pop/Türkçe",
-      "url": "https://trt.radyotvonline.net/trtfm",
+      "url": "https://radio-trtfm.live.trt.com.tr/master.m3u8",
       "favorite": false
     },
     {
@@ -13,7 +13,7 @@
       "name": "TRT Radyo 1",
       "country": "Türkiye",
       "genre": "Haber/Kültür",
-      "url": "https://trt.radyotvonline.net/trt1",
+      "url": "https://radio-trtradyo1.live.trt.com.tr/master.m3u8",
       "favorite": false
     },
     {
@@ -21,7 +21,7 @@
       "name": "TRT Radyo 3",
       "country": "Türkiye",
       "genre": "Klasik/Caz",
-      "url": "https://trt.radyotvonline.net/trt3",
+      "url": "https://radio-trtradyo3.live.trt.com.tr/master.m3u8",
       "favorite": false
     },
     {
@@ -29,7 +29,7 @@
       "name": "TRT Nağme",
       "country": "Türkiye",
       "genre": "Türk Sanat Müziği",
-      "url": "https://trt.radyotvonline.net/trtnagme",
+      "url": "https://radio-trtnagme.live.trt.com.tr/master.m3u8",
       "favorite": false
     },
     {
@@ -37,7 +37,7 @@
       "name": "TRT Türkü",
       "country": "Türkiye",
       "genre": "Türk Halk Müziği",
-      "url": "https://trt.radyotvonline.net/trtturku",
+      "url": "https://radio-trtturku.live.trt.com.tr/master.m3u8",
       "favorite": false
     },
     {
@@ -45,7 +45,7 @@
       "name": "TRT Radyo Haber",
       "country": "Türkiye",
       "genre": "Haber",
-      "url": "https://trt.radyotvonline.net/trthaber",
+      "url": "https://radio-trtradyohaber.live.trt.com.tr/master.m3u8",
       "favorite": false
     },
     {
@@ -149,7 +149,7 @@
       "name": "Number One FM",
       "country": "Türkiye",
       "genre": "Pop/Dance",
-      "url": "https://dijimedya.radyotvonline.net/numberone",
+      "url": "https://moondigitalmaster.radyotvonline.net/numberone/playlist.m3u8",
       "favorite": false
     },
     {
@@ -157,7 +157,7 @@
       "name": "Number One Türk",
       "country": "Türkiye",
       "genre": "Türkçe Pop",
-      "url": "https://dijimedya.radyotvonline.net/numberoneturk",
+      "url": "https://moondigitalmaster.radyotvonline.net/numberoneturk/playlist.m3u8",
       "favorite": false
     },
     {
@@ -429,7 +429,7 @@
       "name": "BBC Radio 1",
       "country": "UK",
       "genre": "Pop/Rock",
-      "url": "http://as-hls-ww-live.akamaized.net/pool_01505109/live/ww/bbc_radio_one/bbc_radio_one.isml/bbc_radio_one-audio%3d320000.norewind.m3u8",
+      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_one.m3u8",
       "favorite": false
     },
     {
@@ -437,7 +437,7 @@
       "name": "BBC Radio 2",
       "country": "UK",
       "genre": "Adult Contemporary",
-      "url": "http://as-hls-ww-live.akamaized.net/pool_01505109/live/ww/bbc_radio_two/bbc_radio_two.isml/bbc_radio_two-audio%3d320000.norewind.m3u8",
+      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_two.m3u8",
       "favorite": false
     },
     {
@@ -445,7 +445,7 @@
       "name": "BBC Radio 3",
       "country": "UK",
       "genre": "Classical",
-      "url": "http://as-hls-ww-live.akamaized.net/pool_01505109/live/ww/bbc_radio_three/bbc_radio_three.isml/bbc_radio_three-audio%3d320000.norewind.m3u8",
+      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_three.m3u8",
       "favorite": false
     },
     {
@@ -453,7 +453,7 @@
       "name": "BBC Radio 4",
       "country": "UK",
       "genre": "Talk/News",
-      "url": "http://as-hls-ww-live.akamaized.net/pool_01505109/live/ww/bbc_radio_fourfm/bbc_radio_fourfm.isml/bbc_radio_fourfm-audio%3d320000.norewind.m3u8",
+      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_fourfm.m3u8",
       "favorite": false
     },
     {
@@ -461,7 +461,7 @@
       "name": "BBC 6 Music",
       "country": "UK",
       "genre": "Alternative",
-      "url": "http://as-hls-ww-live.akamaized.net/pool_81827798/live/ww/bbc_6music/bbc_6music.isml/bbc_6music-audio=320000.norewind.m3u8",
+      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_6music.m3u8",
       "favorite": false
     },
     {
@@ -469,7 +469,7 @@
       "name": "BBC 1Xtra",
       "country": "UK",
       "genre": "Hip Hop/R&B",
-      "url": "http://as-hls-ww-live.akamaized.net/pool_01505109/live/ww/bbc_1xtra/bbc_1xtra.isml/bbc_1xtra-audio%3d320000.norewind.m3u8",
+      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_1xtra.m3u8",
       "favorite": false
     },
     {
