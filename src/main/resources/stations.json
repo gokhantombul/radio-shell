@@ -5,7 +5,7 @@
       "name": "TRT FM",
       "country": "Türkiye",
       "genre": "Pop/Türkçe",
-      "url": "https://radio-trtfm.live.trt.com.tr/master.m3u8",
+      "url": "https://trt.radyotvonline.net/trtfm",
       "favorite": false
     },
     {
@@ -13,7 +13,7 @@
       "name": "TRT Radyo 1",
       "country": "Türkiye",
       "genre": "Haber/Kültür",
-      "url": "https://radio-trtradyo1.live.trt.com.tr/master.m3u8",
+      "url": "https://trt.radyotvonline.net/trt1",
       "favorite": false
     },
     {
@@ -21,7 +21,7 @@
       "name": "TRT Radyo 3",
       "country": "Türkiye",
       "genre": "Klasik/Caz",
-      "url": "https://radio-trtradyo3.live.trt.com.tr/master.m3u8",
+      "url": "https://rd-trtradyo3.medya.trt.com.tr/master.m3u8",
       "favorite": false
     },
     {
@@ -29,7 +29,7 @@
       "name": "TRT Nağme",
       "country": "Türkiye",
       "genre": "Türk Sanat Müziği",
-      "url": "https://radio-trtnagme.live.trt.com.tr/master.m3u8",
+      "url": "https://rd-trtnagme.medya.trt.com.tr/master.m3u8",
       "favorite": false
     },
     {
@@ -37,7 +37,7 @@
       "name": "TRT Türkü",
       "country": "Türkiye",
       "genre": "Türk Halk Müziği",
-      "url": "https://radio-trtturku.live.trt.com.tr/master.m3u8",
+      "url": "https://rd-trtturku.medya.trt.com.tr/master.m3u8",
       "favorite": false
     },
     {
@@ -45,7 +45,7 @@
       "name": "TRT Radyo Haber",
       "country": "Türkiye",
       "genre": "Haber",
-      "url": "https://radio-trtradyohaber.live.trt.com.tr/master.m3u8",
+      "url": "https://trt.radyotvonline.net/trthaber",
       "favorite": false
     },
     {
@@ -93,7 +93,7 @@
       "name": "Kral Pop",
       "country": "Türkiye",
       "genre": "Pop",
-      "url": "https://dygedge2.radyotvonline.net/kralpop/playlist.m3u8",
+      "url": "https://dygedge.radyotvonline.net/kralpop/playlist.m3u8",
       "favorite": false
     },
     {
@@ -145,22 +145,6 @@
       "favorite": false
     },
     {
-      "id": "tr-numberone",
-      "name": "Number One FM",
-      "country": "Türkiye",
-      "genre": "Pop/Dance",
-      "url": "https://moondigitalmaster.radyotvonline.net/numberone/playlist.m3u8",
-      "favorite": false
-    },
-    {
-      "id": "tr-numoneturk",
-      "name": "Number One Türk",
-      "country": "Türkiye",
-      "genre": "Türkçe Pop",
-      "url": "https://moondigitalmaster.radyotvonline.net/numberoneturk/playlist.m3u8",
-      "favorite": false
-    },
-    {
       "id": "tr-radyoeksen",
       "name": "Radyo Eksen",
       "country": "Türkiye",
@@ -197,7 +181,7 @@
       "name": "Pal Station",
       "country": "Türkiye",
       "genre": "Yabancı Pop",
-      "url": "http://shoutcast.radyogrup.com:1020/",
+      "url": "http://shoutcast.radyogrup.com:1020/stream",
       "favorite": true
     },
     {
@@ -229,7 +213,7 @@
       "name": "Show Radyo",
       "country": "Türkiye",
       "genre": "Pop",
-      "url": "https://sslyayin.netyayin.net:6065/",
+      "url": "https://sslyayin.netyayin.net:6065/stream",
       "favorite": false
     },
     {
@@ -237,7 +221,7 @@
       "name": "Radyo Viva",
       "country": "Türkiye",
       "genre": "Pop",
-      "url": "https://moondigitaledge.radyotvonline.net/radyoviva/playlist.m3u8",
+      "url": "https://radyoviva.radyotvonline.net/radyovivaaac",
       "favorite": false
     },
     {
@@ -285,7 +269,7 @@
       "name": "Arabesk FM",
       "country": "Türkiye",
       "genre": "Arabesk",
-      "url": "http://yayin.arabeskfm.biz:8042/",
+      "url": "http://yayin.arabeskfm.biz:8042/stream",
       "favorite": false
     },
     {
@@ -294,22 +278,6 @@
       "country": "Türkiye",
       "genre": "Pop/Rock",
       "url": "http://28033.live.streamtheworld.com/VIRGIN_RADIOAAC_SC",
-      "favorite": false
-    },
-    {
-      "id": "tr-trtvot",
-      "name": "TRT VOT World",
-      "country": "Türkiye",
-      "genre": "Talk/World",
-      "url": "https://radio-trtvotworld.live.trt.com.tr/master.m3u8",
-      "favorite": false
-    },
-    {
-      "id": "tr-kralrock",
-      "name": "Kral Rock",
-      "country": "Türkiye",
-      "genre": "Rock/Indie",
-      "url": "https://dygedge.radyotvonline.net/kralrock/playlist.m3u8",
       "favorite": false
     },
     {
@@ -326,14 +294,6 @@
       "country": "Türkiye",
       "genre": "Rock/Indie",
       "url": "https://stream3.radyoodtu.com.tr:8000/rock",
-      "favorite": false
-    },
-    {
-      "id": "tr-kent-fm",
-      "name": "Kent FM",
-      "country": "Türkiye",
-      "genre": "Rock/Indie",
-      "url": "https://moondigitalmaster.radyotvonline.net/kentfm/playlist.m3u8",
       "favorite": false
     },
     {
@@ -553,14 +513,6 @@
       "favorite": false
     },
     {
-      "id": "world-trt-world",
-      "name": "TRT World Radio",
-      "country": "Türkiye/World",
-      "genre": "News/Talk",
-      "url": "https://radio-trtworld.live.trt.com.tr/master.m3u8",
-      "favorite": false
-    },
-    {
       "id": "fr-fip",
       "name": "FIP Radio",
       "country": "Fransa",
@@ -741,7 +693,39 @@
       "name": "Radio Caroline",
       "country": "İngiltere",
       "genre": "Rock/Indie",
-      "url": "http://sc6.radiocaroline.net:8040/",
+      "url": "http://sc6.radiocaroline.net:8040/;stream.mp3",
+      "favorite": false
+    },
+    {
+      "id": "tr-numberone",
+      "name": "Number 1",
+      "country": "Türkiye",
+      "genre": "Pop/Dance",
+      "url": "http://abm21.com.au:8000/CONTAINER75",
+      "favorite": false
+    },
+    {
+      "id": "tr-radyo-kent",
+      "name": "Radyo Fenomen Pop",
+      "country": "Türkiye",
+      "genre": "Pop/Türkçe",
+      "url": "https://listen.radyofenomen.com/fenomen/128/icecast.audio",
+      "favorite": false
+    },
+    {
+      "id": "tr-rock-kral",
+      "name": "İTÜ Radyosu Rock",
+      "country": "Türkiye",
+      "genre": "Rock/Indie",
+      "url": "http://160.75.86.29:8095/",
+      "favorite": false
+    },
+    {
+      "id": "world-trt-world",
+      "name": "BBC World Service",
+      "country": "World",
+      "genre": "News/Talk",
+      "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_world_service",
       "favorite": false
     }
   ]
