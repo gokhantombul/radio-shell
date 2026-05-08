@@ -23,11 +23,13 @@ import java.util.stream.Collectors;
 public class StationService {
 
     private static final Logger log = LoggerFactory.getLogger(StationService.class);
+    private static final Locale TR = Locale.forLanguageTag("tr");
 
     private final RadioConfig config;
     private final ObjectMapper mapper;
     private final Map<String, RadioStation> stationMap = new ConcurrentHashMap<>();
     private final Set<String> favoriteIds = ConcurrentHashMap.newKeySet();
+    private final Set<String> builtInIds = new HashSet<>();
 
     public StationService(RadioConfig config) {
         this.config = config;
@@ -45,7 +47,10 @@ public class StationService {
         try {
             var resource = new ClassPathResource("stations.json");
             var list = mapper.readValue(resource.getInputStream(), StationList.class);
-            list.stations().forEach(s -> stationMap.put(s.id(), s));
+            list.stations().forEach(s -> {
+                stationMap.put(s.id(), s);
+                builtInIds.add(s.id());
+            });
             log.info("{} dahili istasyon yüklendi", list.stations().size());
         } catch (IOException e) {
             log.error("Dahili istasyonlar yüklenemedi: {}", e.getMessage());
@@ -110,11 +115,11 @@ public class StationService {
     }
 
     public List<RadioStation> searchStations(String query) {
-        String q = query.toLowerCase(Locale.forLanguageTag("tr"));
+        String q = query.toLowerCase(TR);
         return getAllStations().stream()
-                .filter(s -> s.name().toLowerCase(Locale.forLanguageTag("tr")).contains(q)
-                        || s.country().toLowerCase(Locale.forLanguageTag("tr")).contains(q)
-                        || s.genre().toLowerCase(Locale.forLanguageTag("tr")).contains(q)
+                .filter(s -> s.name().toLowerCase(TR).contains(q)
+                        || s.country().toLowerCase(TR).contains(q)
+                        || s.genre().toLowerCase(TR).contains(q)
                         || s.id().toLowerCase().contains(q))
                 .toList();
     }
@@ -125,9 +130,9 @@ public class StationService {
         if (station != null) return Optional.of(station.withFavorite(favoriteIds.contains(station.id())));
 
         // Try name match (case-insensitive)
-        String lower = idOrName.toLowerCase(Locale.forLanguageTag("tr"));
+        String lower = idOrName.toLowerCase(TR);
         return stationMap.values().stream()
-                .filter(s -> s.name().toLowerCase(Locale.forLanguageTag("tr")).equals(lower)
+                .filter(s -> s.name().toLowerCase(TR).equals(lower)
                         || s.id().toLowerCase().equals(lower))
                 .findFirst()
                 .map(s -> s.withFavorite(favoriteIds.contains(s.id())));
@@ -177,6 +182,7 @@ public class StationService {
     }
 
     public boolean removeCustomStation(String id) {
+        if (builtInIds.contains(id)) return false;
         var removed = stationMap.remove(id);
         if (removed != null) {
             favoriteIds.remove(id);
@@ -193,15 +199,6 @@ public class StationService {
             if (path == null) return;
             Path p = Path.of(path);
             Files.createDirectories(p.getParent());
-
-            // Only save custom stations (those not in built-in)
-            Set<String> builtInIds = new HashSet<>();
-            try {
-                var resource = new ClassPathResource("stations.json");
-                var list = mapper.readValue(resource.getInputStream(), StationList.class);
-                list.stations().forEach(s -> builtInIds.add(s.id()));
-            } catch (IOException ignored) {}
-
             var customStations = stationMap.values().stream()
                     .filter(s -> !builtInIds.contains(s.id()))
                     .toList();
@@ -212,9 +209,9 @@ public class StationService {
     }
 
     public List<RadioStation> getStationsByGenre(String genre) {
-        String g = genre.toLowerCase(Locale.forLanguageTag("tr"));
+        String g = genre.toLowerCase(TR);
         return getAllStations().stream()
-                .filter(s -> s.genre().toLowerCase(Locale.forLanguageTag("tr")).contains(g))
+                .filter(s -> s.genre().toLowerCase(TR).contains(g))
                 .toList();
     }
 }

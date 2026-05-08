@@ -186,9 +186,13 @@ public class RadioCommands {
     @Command(name = "ses", description = "Ses seviyesini ayarlar (0-100)", group = "Radio")
     public String volume(
             @Option(longName = "seviye", shortName = 's', required = true, description = "Ses seviyesi 0-100") int level) {
+        if (level < 0 || level > 100) {
+            return "  ⚠ Ses seviyesi 0-100 arasında olmalıdır (girilen: %d).".formatted(level);
+        }
         player.setVolume(level);
         String bar = "█".repeat(player.getVolume() / 5) + "░".repeat(20 - player.getVolume() / 5);
-        return "  🔊 Ses: %%%d [%s]".formatted(player.getVolume(), bar);
+        String note = player.isVolumeChangePending() ? "\n  ℹ Çalmakta olan yayında bir sonraki 'cal' komutunda geçerli olur." : "";
+        return ("  🔊 Ses: %%%d [%s]" + note).formatted(player.getVolume(), bar);
     }
 
     @Command(name = "sonraki", description = "Listedeki bir sonraki istasyona geçer", group = "Radio")
@@ -260,6 +264,10 @@ public class RadioCommands {
         }
 
         var current = player.getCurrentStation();
+        if (current == null) {
+            return "  ⚠ Şu an çalan bir istasyon yok. Önce 'cal -i <id>' ile bir istasyon çalın.";
+        }
+
         int currentIndex = -1;
         for (int i = 0; i < navigationList.size(); i++) {
             if (navigationList.get(i).id().equals(current.id())) {
@@ -496,6 +504,14 @@ public class RadioCommands {
             @Option(longName = "url", required = true, description = "Akış URL'si") String url) {
         if (stationService.findStation(id).isPresent()) {
             return "  ⚠ '%s' ID'si zaten mevcut.".formatted(id);
+        }
+        try {
+            var uri = URI.create(url);
+            if (uri.getScheme() == null || (!uri.getScheme().equals("http") && !uri.getScheme().equals("https"))) {
+                return "  ⚠ Geçersiz URL: http:// veya https:// ile başlamalıdır.";
+            }
+        } catch (IllegalArgumentException e) {
+            return "  ⚠ Geçersiz URL formatı: " + e.getMessage();
         }
         var station = new RadioStation(id, name, country, genre, url, false);
         stationService.addCustomStation(station);
