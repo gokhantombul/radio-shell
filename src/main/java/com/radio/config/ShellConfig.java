@@ -15,6 +15,9 @@ public class ShellConfig {
 
     @PreDestroy
     public void cleanup() {
+        if (player.isRecording()) {
+            player.stopRecording();
+        }
         player.stop();
     }
 }

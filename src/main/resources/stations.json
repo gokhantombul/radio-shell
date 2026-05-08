@@ -427,7 +427,7 @@
     {
       "id": "uk-bbc-radio1",
       "name": "BBC Radio 1",
-      "country": "UK",
+      "country": "İngiltere",
       "genre": "Pop/Rock",
       "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_one.m3u8",
       "favorite": false
@@ -435,7 +435,7 @@
     {
       "id": "uk-bbc-radio2",
       "name": "BBC Radio 2",
-      "country": "UK",
+      "country": "İngiltere",
       "genre": "Adult Contemporary",
       "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_two.m3u8",
       "favorite": false
@@ -443,7 +443,7 @@
     {
       "id": "uk-bbc-radio3",
       "name": "BBC Radio 3",
-      "country": "UK",
+      "country": "İngiltere",
       "genre": "Classical",
       "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_three.m3u8",
       "favorite": false
@@ -451,7 +451,7 @@
     {
       "id": "uk-bbc-radio4",
       "name": "BBC Radio 4",
-      "country": "UK",
+      "country": "İngiltere",
       "genre": "Talk/News",
       "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_fourfm.m3u8",
       "favorite": false
@@ -459,7 +459,7 @@
     {
       "id": "uk-bbc-6music",
       "name": "BBC 6 Music",
-      "country": "UK",
+      "country": "İngiltere",
       "genre": "Alternative",
       "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_6music.m3u8",
       "favorite": false
@@ -467,7 +467,7 @@
     {
       "id": "uk-bbc-1xtra",
       "name": "BBC 1Xtra",
-      "country": "UK",
+      "country": "İngiltere",
       "genre": "Hip Hop/R&B",
       "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_1xtra.m3u8",
       "favorite": false
@@ -475,7 +475,7 @@
     {
       "id": "world-radio-paradise",
       "name": "Radio Paradise",
-      "country": "USA/World",
+      "country": "ABD",
       "genre": "Eclectic/Rock",
       "url": "http://stream.radioparadise.com/aac-128",
       "favorite": false
@@ -483,7 +483,7 @@
     {
       "id": "us-kexp",
       "name": "KEXP 90.3 FM",
-      "country": "USA",
+      "country": "ABD",
       "genre": "Indie/Alternative",
       "url": "https://kexp-mp3-128.streamguys1.com/kexp128.mp3",
       "favorite": false
@@ -491,7 +491,7 @@
     {
       "id": "us-wfmu",
       "name": "WFMU",
-      "country": "USA",
+      "country": "ABD",
       "genre": "Freeform",
       "url": "http://stream0.wfmu.org/freeform-128k",
       "favorite": false
@@ -499,7 +499,7 @@
     {
       "id": "us-jazz24",
       "name": "Jazz24",
-      "country": "USA",
+      "country": "ABD",
       "genre": "Jazz",
       "url": "https://knkx-live-a.edge.audiocdn.com/6285_128k/playlist.m3u8",
       "favorite": false
@@ -507,7 +507,7 @@
     {
       "id": "us-klassik",
       "name": "WQXR Classical",
-      "country": "USA",
+      "country": "ABD",
       "genre": "Classical",
       "url": "https://stream.wqxr.org/wqxr-web",
       "favorite": false
@@ -515,7 +515,7 @@
     {
       "id": "us-soma-groovesalad",
       "name": "SomaFM Groove Salad",
-      "country": "USA",
+      "country": "ABD",
       "genre": "Ambient/Chill",
       "url": "https://ice5.somafm.com/groovesalad-128-mp3",
       "favorite": false
@@ -523,7 +523,7 @@
     {
       "id": "us-soma-defcon",
       "name": "SomaFM DEF CON",
-      "country": "USA",
+      "country": "ABD",
       "genre": "Electronic",
       "url": "https://ice6.somafm.com/defcon-128-aac",
       "favorite": false
@@ -531,7 +531,7 @@
     {
       "id": "us-soma-dronezone",
       "name": "SomaFM Drone Zone",
-      "country": "USA",
+      "country": "ABD",
       "genre": "Ambient/Space",
       "url": "https://ice2.somafm.com/dronezone-256-mp3",
       "favorite": false
@@ -539,7 +539,7 @@
     {
       "id": "world-soma-lush",
       "name": "SomaFM Lush",
-      "country": "Internet",
+      "country": "İnternet",
       "genre": "Sensuous/Chill",
       "url": "https://ice2.somafm.com/lush-128-mp3",
       "favorite": false
@@ -547,7 +547,7 @@
     {
       "id": "world-soma-cliqhop",
       "name": "SomaFM Cliqhop",
-      "country": "Internet",
+      "country": "İnternet",
       "genre": "IDM/Electronic",
       "url": "https://ice2.somafm.com/cliqhop-128-mp3",
       "favorite": false
@@ -659,7 +659,7 @@
     {
       "id": "world-chillout",
       "name": "Chill Out Zone",
-      "country": "Internet",
+      "country": "İnternet",
       "genre": "Chillout/Lounge",
       "url": "https://ice2.somafm.com/illstreet-128-mp3",
       "favorite": false
@@ -667,7 +667,7 @@
     {
       "id": "world-deephouse",
       "name": "Deep House Radio",
-      "country": "Internet",
+      "country": "İnternet",
       "genre": "Deep House",
       "url": "https://ice2.somafm.com/deepspaceone-128-mp3",
       "favorite": false
@@ -683,7 +683,7 @@
     {
       "id": "world-rp-rock",
       "name": "Radio Paradise Rock",
-      "country": "USA/World",
+      "country": "ABD",
       "genre": "Rock/Indie",
       "url": "http://stream.radioparadise.com/rock-320",
       "favorite": false
@@ -707,7 +707,7 @@
     {
       "id": "us-hard-rock-heaven",
       "name": "Hard Rock Heaven",
-      "country": "USA",
+      "country": "ABD",
       "genre": "Rock/Indie",
       "url": "http://hydra.cdnstream.com/1521_128",
       "favorite": false
@@ -723,7 +723,7 @@
     {
       "id": "uk-virgin-radio",
       "name": "Virgin Radio UK",
-      "country": "UK",
+      "country": "İngiltere",
       "genre": "Rock/Indie",
       "url": "https://radio.virginradio.co.uk/stream",
       "favorite": false
@@ -731,7 +731,7 @@
     {
       "id": "nz-the-sound",
       "name": "The Sound",
-      "country": "New Zealand",
+      "country": "Yeni Zelanda",
       "genre": "Rock/Indie",
       "url": "https://mediaworks.streamguys1.com/sound_net/playlist.m3u8",
       "favorite": false
@@ -739,7 +739,7 @@
     {
       "id": "uk-radio-caroline",
       "name": "Radio Caroline",
-      "country": "UK",
+      "country": "İngiltere",
       "genre": "Rock/Indie",
       "url": "http://sc6.radiocaroline.net:8040/",
       "favorite": false

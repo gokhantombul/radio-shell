@@ -64,10 +64,12 @@ public class AudioPlayer {
             currentStation = station;
             currentSongTitle = null;
 
-            // Background thread to parse metadata
+            // Capture local reference to avoid race with stop() clearing the field
+            final Process capturedProcess = currentProcess;
+
             Thread metadataThread = new Thread(() -> {
                 try (var reader = new java.io.BufferedReader(
-                        new java.io.InputStreamReader(currentProcess.getInputStream()))) {
+                        new java.io.InputStreamReader(capturedProcess.getInputStream()))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         if (line.contains("StreamTitle")) {
@@ -77,14 +79,17 @@ public class AudioPlayer {
                                 if (end > start) {
                                     String title = line.substring(start, end).trim();
                                     synchronized (this) {
-                                        this.currentSongTitle = title;
+                                        // Only update if this is still the active process
+                                        if (currentProcess == capturedProcess) {
+                                            this.currentSongTitle = title;
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 } catch (IOException e) {
-                    // Process ended or stream closed
+                    // Process ended or stream closed — expected on stop()
                 }
             }, "MetadataParser");
             metadataThread.setDaemon(true);
@@ -120,7 +125,12 @@ public class AudioPlayer {
                 }
             }
             return true;
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            currentStation = null;
+            currentProcess = null;
+            return false;
+        } catch (IOException e) {
             log.error("Oynatma hatası: {}", e.getMessage());
             currentStation = null;
             currentProcess = null;
@@ -159,10 +169,10 @@ public class AudioPlayer {
 
     public synchronized void setVolume(int vol) {
         this.volume = Math.max(0, Math.min(100, vol));
-        if (isPlaying()) {
-            RadioStation station = currentStation;
-            play(station);
-        }
+    }
+
+    public synchronized boolean isVolumeChangePending() {
+        return isPlaying();
     }
 
     public synchronized Path startRecording() throws IOException {
