@@ -162,6 +162,11 @@ public class RadioCommands {
 
     @Command(name = "durum", description = "Şu anki çalma durumunu gösterir", group = "Radio")
     public String status() {
+        if (player.isAutoReconnecting()) {
+            var station = player.getCurrentStation();
+            return "  ↻ Yeniden bağlanılıyor: %s — lütfen bekleyin...".formatted(
+                    station != null ? station.name() : "");
+        }
         if (!player.isPlaying()) {
             return "  ⏸ Şu an çalan bir istasyon yok.";
         }

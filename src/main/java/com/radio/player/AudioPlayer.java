@@ -19,14 +19,20 @@ import java.util.List;
 public class AudioPlayer {
 
     private static final Logger log = LoggerFactory.getLogger(AudioPlayer.class);
-
     private static final DateTimeFormatter FILE_DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
 
+    private static final int MAX_RECONNECT_ATTEMPTS = 3;
+    private static final long[] RECONNECT_DELAYS_MS = {2_000, 4_000, 8_000};
+
     private final RadioConfig config;
+
     private Process currentProcess;
     private RadioStation currentStation;
     private String currentSongTitle;
     private int volume = 100;
+
+    // true while user has explicitly requested a stop — prevents watchdog reconnects
+    private volatile boolean stopRequested = false;
 
     private Process recordProcess;
     private Path recordFile;
@@ -40,23 +46,12 @@ public class AudioPlayer {
     }
 
     public synchronized boolean play(RadioStation station, PrintWriter out) {
-        stop();
+        // Signal any running watchdog to stand down before killing the old process
+        stopRequested = true;
+        killCurrentProcess();
+        stopRequested = false;
 
-        List<String> command = new ArrayList<>();
-        command.add(config.getPlayer().getCommand());
-        for (String arg : config.getPlayer().getArgs()) {
-            if ("quiet".equals(arg)) {
-                command.add("info");
-            } else if ("-loglevel".equals(arg)) {
-                command.add("-loglevel");
-            } else {
-                command.add(arg);
-            }
-        }
-        command.add("-volume");
-        command.add(String.valueOf(volume));
-        command.add(station.url());
-
+        List<String> command = buildCommand(station);
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.redirectErrorStream(true);
@@ -64,52 +59,23 @@ public class AudioPlayer {
             currentStation = station;
             currentSongTitle = null;
 
-            // Capture local reference to avoid race with stop() clearing the field
-            final Process capturedProcess = currentProcess;
-
-            Thread metadataThread = new Thread(() -> {
-                try (var reader = new java.io.BufferedReader(
-                        new java.io.InputStreamReader(capturedProcess.getInputStream()))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        if (line.contains("StreamTitle")) {
-                            int start = line.indexOf("StreamTitle='") + 13;
-                            if (start > 12) {
-                                int end = line.indexOf("';", start);
-                                if (end > start) {
-                                    String title = line.substring(start, end).trim();
-                                    synchronized (this) {
-                                        // Only update if this is still the active process
-                                        if (currentProcess == capturedProcess) {
-                                            this.currentSongTitle = title;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } catch (IOException e) {
-                    // Process ended or stream closed — expected on stop()
-                }
-            }, "MetadataParser");
-            metadataThread.setDaemon(true);
-            metadataThread.start();
+            final Process captured = currentProcess;
+            startMetadataThread(captured);
+            startWatchdog(station, captured, 0);
 
             // Show connection progress animation
-            String[] spinner = {"\u28FE", "\u28FD", "\u28FB", "\u28BF", "\u287F", "\u28DF", "\u28EF", "\u28F7"};
+            String[] spinner = {"⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"};
             int steps = 25;
             for (int i = 0; i < steps; i++) {
                 if (out != null) {
                     int pct = (i + 1) * 100 / steps;
                     int filled = pct / 5;
-                    String bar = "\u2588".repeat(filled) + "\u2591".repeat(20 - filled);
+                    String bar = "█".repeat(filled) + "░".repeat(20 - filled);
                     out.print("\r  " + spinner[i % spinner.length] + " Baglaniyor [" + bar + "] %" + pct);
                     out.flush();
                 }
                 Thread.sleep(80);
-                if (!currentProcess.isAlive()) {
-                    break;
-                }
+                if (!currentProcess.isAlive()) break;
             }
             if (out != null) {
                 out.print("\r" + " ".repeat(60) + "\r");
@@ -117,8 +83,7 @@ public class AudioPlayer {
             }
 
             if (!currentProcess.isAlive()) {
-                int exit = currentProcess.exitValue();
-                if (exit != 0) {
+                if (currentProcess.exitValue() != 0) {
                     currentStation = null;
                     currentProcess = null;
                     return false;
@@ -139,16 +104,8 @@ public class AudioPlayer {
     }
 
     public synchronized void stop() {
-        if (currentProcess != null && currentProcess.isAlive()) {
-            currentProcess.destroyForcibly();
-            try {
-                currentProcess.waitFor();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
-        currentProcess = null;
-        currentStation = null;
+        stopRequested = true;
+        killCurrentProcess();
     }
 
     public synchronized boolean isPlaying() {
@@ -175,10 +132,12 @@ public class AudioPlayer {
         return isPlaying();
     }
 
+    public synchronized boolean isAutoReconnecting() {
+        return !stopRequested && !isPlaying() && currentStation != null;
+    }
+
     public synchronized Path startRecording() throws IOException {
-        if (currentStation == null || !isPlaying()) {
-            return null;
-        }
+        if (currentStation == null || !isPlaying()) return null;
         stopRecording();
 
         Path recordDir = Path.of(config.getRecordingsDir());
@@ -188,16 +147,15 @@ public class AudioPlayer {
         String timestamp = LocalDateTime.now().format(FILE_DATE_FMT);
         recordFile = recordDir.resolve(safeName + "_" + timestamp + ".mp3");
 
-        List<String> command = List.of(
+        List<String> cmd = List.of(
                 "ffmpeg", "-y",
                 "-i", currentStation.url(),
                 "-acodec", "libmp3lame",
                 "-ab", "192k",
                 "-loglevel", "quiet",
-                recordFile.toString()
-        );
+                recordFile.toString());
 
-        ProcessBuilder pb = new ProcessBuilder(command);
+        ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.redirectErrorStream(true);
         pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
         recordProcess = pb.start();
@@ -206,7 +164,7 @@ public class AudioPlayer {
 
     public synchronized Path stopRecording() {
         if (recordProcess != null && recordProcess.isAlive()) {
-            recordProcess.destroy(); // SIGTERM - ffmpeg düzgün kapatır dosyayı
+            recordProcess.destroy();
             try {
                 recordProcess.waitFor();
             } catch (InterruptedException e) {
@@ -225,5 +183,139 @@ public class AudioPlayer {
 
     public synchronized Path getRecordFile() {
         return recordFile;
+    }
+
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
+
+    private List<String> buildCommand(RadioStation station) {
+        List<String> command = new ArrayList<>();
+        command.add(config.getPlayer().getCommand());
+        for (String arg : config.getPlayer().getArgs()) {
+            if ("quiet".equals(arg)) {
+                command.add("info");
+            } else if ("-loglevel".equals(arg)) {
+                command.add("-loglevel");
+            } else {
+                command.add(arg);
+            }
+        }
+        command.add("-volume");
+        command.add(String.valueOf(volume));
+        command.add(station.url());
+        return command;
+    }
+
+    private void killCurrentProcess() {
+        if (currentProcess != null && currentProcess.isAlive()) {
+            currentProcess.destroyForcibly();
+            try {
+                currentProcess.waitFor();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        currentProcess = null;
+        currentStation = null;
+    }
+
+    private void startMetadataThread(Process capturedProcess) {
+        Thread t = new Thread(() -> {
+            try (var reader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(capturedProcess.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains("StreamTitle")) {
+                        int start = line.indexOf("StreamTitle='") + 13;
+                        if (start > 12) {
+                            int end = line.indexOf("';", start);
+                            if (end > start) {
+                                String title = line.substring(start, end).trim();
+                                synchronized (this) {
+                                    if (currentProcess == capturedProcess) {
+                                        this.currentSongTitle = title;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                // Process ended or stream closed — expected on stop()
+            }
+        }, "MetadataParser");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    /**
+     * Watches for unexpected process death and retries up to MAX_RECONNECT_ATTEMPTS times.
+     * The generation counter prevents infinite reconnect loops on persistently dead streams.
+     */
+    private void startWatchdog(RadioStation station, Process monitoredProcess, int generation) {
+        Thread watchdog = new Thread(() -> {
+            try {
+                monitoredProcess.waitFor();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+
+            // User requested stop — don't reconnect
+            if (stopRequested) return;
+
+            // A newer play/reconnect already superseded this watchdog
+            synchronized (AudioPlayer.this) {
+                if (currentProcess != monitoredProcess) return;
+            }
+
+            if (generation >= MAX_RECONNECT_ATTEMPTS) {
+                log.error("Yeniden bağlanma denemesi tükendi ({}): {}", MAX_RECONNECT_ATTEMPTS, station.name());
+                synchronized (AudioPlayer.this) {
+                    if (!stopRequested && currentProcess == monitoredProcess) {
+                        currentStation = null;
+                        currentProcess = null;
+                    }
+                }
+                return;
+            }
+
+            long delay = RECONNECT_DELAYS_MS[generation];
+            log.warn("Stream kesildi ({}/{}), {}ms sonra yeniden bağlanılıyor: {}",
+                    generation + 1, MAX_RECONNECT_ATTEMPTS, delay, station.name());
+
+            try {
+                Thread.sleep(delay);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+
+            if (!stopRequested) {
+                reconnectSilent(station, generation + 1);
+            }
+        }, "Watchdog-" + station.id());
+        watchdog.setDaemon(true);
+        watchdog.start();
+    }
+
+    private synchronized void reconnectSilent(RadioStation station, int generation) {
+        if (stopRequested) return;
+        try {
+            ProcessBuilder pb = new ProcessBuilder(buildCommand(station));
+            pb.redirectErrorStream(true);
+            Process newProcess = pb.start();
+            currentProcess = newProcess;
+            currentStation = station;
+            currentSongTitle = null;
+            startMetadataThread(newProcess);
+            startWatchdog(station, newProcess, generation);
+            log.info("Yeniden bağlandı ({}/{}): {}", generation, MAX_RECONNECT_ATTEMPTS, station.name());
+        } catch (IOException e) {
+            log.error("Yeniden bağlanma hatası: {}", e.getMessage());
+            currentStation = null;
+            currentProcess = null;
+        }
     }
 }
