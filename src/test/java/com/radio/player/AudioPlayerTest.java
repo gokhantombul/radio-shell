@@ -5,6 +5,8 @@ import com.radio.model.RadioStation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AudioPlayerTest {
@@ -86,6 +88,16 @@ class AudioPlayerTest {
     }
 
     @Test
+    void shouldShowPendingSongInfo_whenNotPlaying_returnsFalse() {
+        assertThat(player.shouldShowPendingSongInfo(Duration.ofSeconds(15))).isFalse();
+    }
+
+    @Test
+    void getPlaybackElapsed_whenNotPlaying_returnsZero() {
+        assertThat(player.getPlaybackElapsed()).isEqualTo(Duration.ZERO);
+    }
+
+    @Test
     void extractSongTitle_parsesQuotedStreamTitle() {
         String result = AudioPlayer.extractSongTitle("Metadata update for StreamTitle='Artist - Song';StreamUrl='';");
 
@@ -104,6 +116,31 @@ class AudioPlayerTest {
         String result = AudioPlayer.extractSongTitle("icy-title: Artist | Song");
 
         assertThat(result).isEqualTo("Artist | Song");
+    }
+
+    @Test
+    void extractStreamInfo_parsesIcyBitrate() {
+        var info = AudioPlayer.extractStreamInfo("icy-br: 128");
+
+        assertThat(info.bitrateKbps()).isEqualTo(128);
+    }
+
+    @Test
+    void extractStreamInfo_parsesAudioLine() {
+        var info = AudioPlayer.extractStreamInfo("Stream #0:0: Audio: mp3, 44100 Hz, stereo, fltp, 128 kb/s");
+
+        assertThat(info.codec()).isEqualTo("mp3");
+        assertThat(info.sampleRateHz()).isEqualTo(44100);
+        assertThat(info.channels()).isEqualTo("stereo");
+        assertThat(info.bitrateKbps()).isEqualTo(128);
+    }
+
+    @Test
+    void extractStreamInfo_parsesContentType() {
+        var info = AudioPlayer.extractStreamInfo("Content-Type: audio/aacp");
+
+        assertThat(info.contentType()).isEqualTo("audio/aacp");
+        assertThat(info.codec()).isEqualTo("aac");
     }
 
     @Test

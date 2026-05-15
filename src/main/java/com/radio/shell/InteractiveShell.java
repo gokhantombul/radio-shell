@@ -15,6 +15,8 @@ import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
+import org.jline.utils.AttributedString;
+import org.jline.utils.Status;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.shell.core.InputReader;
@@ -29,6 +31,8 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -45,6 +49,8 @@ public class InteractiveShell implements ApplicationRunner {
     private final AudioPlayer player;
     private final StationService stationService;
     private final ThemeManager themeManager;
+    private volatile boolean statusAnimationRunning;
+    private Thread statusAnimationThread;
 
     public InteractiveShell(CommandParser commandParser,
                             CommandRegistry commandRegistry,
@@ -193,36 +199,41 @@ public class InteractiveShell implements ApplicationRunner {
             }
         };
 
-        printBanner(out);
+        startPlaybackStatusAnimation(lineReader, terminal);
+        try {
+            printBanner(out);
 
-        while (true) {
-            String line;
-            try {
-                line = lineReader.readLine(getPrompt());
-            } catch (EndOfFileException e) {
-                break; // Ctrl+D
-            } catch (UserInterruptException e) {
-                continue; // Ctrl+C - ignore and show new prompt
+            while (true) {
+                String line;
+                try {
+                    line = lineReader.readLine(getPrompt());
+                } catch (EndOfFileException e) {
+                    break; // Ctrl+D
+                } catch (UserInterruptException e) {
+                    continue; // Ctrl+C - ignore and show new prompt
+                }
+
+                if (line == null) break;
+                line = line.trim();
+                if (line.isEmpty()) continue;
+
+                if (isExitCommand(line)) {
+                    player.stop();
+                    out.println("  " + theme().accent() + "Görüşmek üzere! ♬" + theme().reset());
+                    break;
+                }
+
+                if (isHelpCommand(line)) {
+                    printHelp(out);
+                    continue;
+                }
+
+                executeCommand(line, out, inputReader);
             }
-
-            if (line == null) break;
-            line = line.trim();
-            if (line.isEmpty()) continue;
-
-            if (isExitCommand(line)) {
-                player.stop();
-                out.println("  " + theme().accent() + "Görüşmek üzere! ♬" + theme().reset());
-                break;
-            }
-
-            if (isHelpCommand(line)) {
-                printHelp(out);
-                continue;
-            }
-
-            executeCommand(line, out, inputReader);
+        } finally {
+            stopPlaybackStatusAnimation();
+            terminal.close();
         }
-        terminal.close();
     }
 
     private void executeCommand(String input, PrintWriter out, InputReader inputReader) {
@@ -260,10 +271,147 @@ public class InteractiveShell implements ApplicationRunner {
                 song = UIUtils.truncate(song, 45);
             }
             var info = station.name() + (song != null && !song.isBlank() ? " - " + song : "");
-            return t.secondary() + t.bold() + "♬ [" + info + "] "
+            return t.secondary() + t.bold() + UIUtils.playbackPromptFrame() + " [" + info + "] "
                     + t.reset() + t.primary() + t.bold() + "radio> " + t.reset();
         }
         return t.primary() + t.bold() + "radio> " + t.reset();
+    }
+
+    private void startPlaybackStatusAnimation(LineReader lineReader, Terminal terminal) {
+        statusAnimationRunning = true;
+        statusAnimationThread = new Thread(() -> {
+            Status status = Status.getStatus(terminal);
+            if (status == null) {
+                return;
+            }
+
+            boolean visible = false;
+            int frame = 0;
+            try {
+                while (statusAnimationRunning && !Thread.currentThread().isInterrupted()) {
+                    if (player.isPlaying() && player.getCurrentStation() != null) {
+                        if (lineReader.isReading()) {
+                            status.update(List.of(
+                                    AttributedString.EMPTY,
+                                    AttributedString.fromAnsi(buildPlaybackStatusLine(frame), terminal)));
+                            visible = true;
+                            frame++;
+                        }
+                    } else if (visible) {
+                        status.hide();
+                        visible = false;
+                    }
+                    Thread.sleep(180L);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                if (visible) {
+                    status.hide();
+                }
+                status.close();
+            }
+        }, "PlaybackStatusAnimation");
+        statusAnimationThread.setDaemon(true);
+        statusAnimationThread.start();
+    }
+
+    private void stopPlaybackStatusAnimation() {
+        statusAnimationRunning = false;
+        if (statusAnimationThread != null) {
+            statusAnimationThread.interrupt();
+            try {
+                statusAnimationThread.join(500L);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            statusAnimationThread = null;
+        }
+    }
+
+    private String buildPlaybackStatusLine(int frame) {
+        var station = player.getCurrentStation();
+        if (station == null) {
+            return "";
+        }
+
+        var parts = new ArrayList<String>();
+        parts.add(UIUtils.playbackAnimationFrame(frame));
+        parts.add(station.name());
+
+        var songInfo = player.getCurrentSongInfo();
+        var song = songInfo != null ? songInfo.displayTitle() : player.getCurrentSongTitle();
+        if (song != null && !song.isBlank()) {
+            parts.add(UIUtils.truncate(song, 40));
+        } else if (player.shouldShowPendingSongInfo(Duration.ofSeconds(15))) {
+            parts.add("şarkı bilgisi bekleniyor");
+        }
+
+        parts.add(station.country());
+        parts.add(station.genre());
+
+        var streamInfo = player.getCurrentStreamInfo();
+        if (streamInfo != null) {
+            appendStreamInfoParts(parts, streamInfo);
+        }
+
+        parts.add("ses %" + player.getVolume());
+        parts.add("süre " + formatStatusDuration(player.getPlaybackElapsed()));
+
+        if (player.isRecording() && player.getRecordFile() != null) {
+            parts.add("kayıt " + player.getRecordFile().getFileName());
+        }
+        if (player.isSleepTimerActive()) {
+            parts.add("uyku " + formatStatusDuration(player.getSleepRemaining()));
+        }
+
+        var t = theme();
+        return "  " + t.secondary() + t.bold() + parts.getFirst() + t.reset()
+                + " " + t.primary() + UIUtils.truncate(String.join(" | ", parts.subList(1, parts.size())), 105) + t.reset();
+    }
+
+    private void appendStreamInfoParts(List<String> parts, AudioPlayer.StreamInfo streamInfo) {
+        if (streamInfo.codec() != null && !streamInfo.codec().isBlank()) {
+            parts.add(streamInfo.codec().toUpperCase(Locale.ROOT));
+        } else if (streamInfo.contentType() != null && !streamInfo.contentType().isBlank()) {
+            parts.add(streamInfo.contentType());
+        }
+        if (streamInfo.bitrateKbps() != null) {
+            parts.add(streamInfo.bitrateKbps() + " kbps");
+        }
+        String audioShape = formatAudioShape(streamInfo);
+        if (!audioShape.isBlank()) {
+            parts.add(audioShape);
+        }
+    }
+
+    private String formatAudioShape(AudioPlayer.StreamInfo streamInfo) {
+        var shape = new ArrayList<String>();
+        if (streamInfo.sampleRateHz() != null) {
+            shape.add(formatSampleRate(streamInfo.sampleRateHz()));
+        }
+        if (streamInfo.channels() != null && !streamInfo.channels().isBlank()) {
+            shape.add(streamInfo.channels());
+        }
+        return String.join(" ", shape);
+    }
+
+    private String formatSampleRate(int sampleRateHz) {
+        if (sampleRateHz % 1000 == 0) {
+            return (sampleRateHz / 1000) + " kHz";
+        }
+        return String.format(Locale.ROOT, "%.1f kHz", sampleRateHz / 1000.0);
+    }
+
+    private String formatStatusDuration(Duration duration) {
+        long seconds = Math.max(0, duration.toSeconds());
+        long hours = seconds / 3600;
+        long minutes = (seconds % 3600) / 60;
+        long remainingSeconds = seconds % 60;
+        if (hours > 0) {
+            return "%d:%02d:%02d".formatted(hours, minutes, remainingSeconds);
+        }
+        return "%02d:%02d".formatted(minutes, remainingSeconds);
     }
 
     private void printBanner(PrintWriter out) {

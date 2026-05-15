@@ -5,6 +5,31 @@ import java.io.PrintWriter;
 public class UIUtils {
 
     private static final String ANSI_RESET = "\033[0m";
+    private static final String[] PLAYBACK_ANIMATION_FRAMES = {
+            "♪ ●○○",
+            "♫ ○●○",
+            "♬ ○○●",
+            "♫ ○●○"
+    };
+    private static final String[] PLAYBACK_PROMPT_FRAMES = {"♪", "♫", "♬", "♫"};
+
+    public static String playbackAnimationFrame() {
+        long frame = System.currentTimeMillis() / 180L;
+        return playbackAnimationFrame((int) frame);
+    }
+
+    public static String playbackAnimationFrame(int frame) {
+        return PLAYBACK_ANIMATION_FRAMES[Math.floorMod(frame, PLAYBACK_ANIMATION_FRAMES.length)];
+    }
+
+    public static String playbackPromptFrame() {
+        long frame = System.currentTimeMillis() / 280L;
+        return playbackPromptFrame((int) frame);
+    }
+
+    public static String playbackPromptFrame(int frame) {
+        return PLAYBACK_PROMPT_FRAMES[Math.floorMod(frame, PLAYBACK_PROMPT_FRAMES.length)];
+    }
 
     public static void printBoxed(PrintWriter out, String[] lines, int innerWidth, String color) {
         String top    = "  ╔" + "═".repeat(innerWidth + 2) + "╗";

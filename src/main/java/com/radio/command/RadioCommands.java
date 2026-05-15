@@ -148,7 +148,7 @@ public class RadioCommands {
         PrintWriter progressOut = new PrintWriter(System.out, true, StandardCharsets.UTF_8);
         boolean success = player.play(station, progressOut);
         if (success) {
-            sb.append("  ✓ Çalınıyor! Durdurmak için 'dur' yazın.\n");
+            sb.append("  ♫ Yayın başladı. Durdurmak için 'dur' yazın.\n");
             appendCurrentSongInfo(sb, false);
         } else {
             sb.append("  ✗ Bağlantı kurulamadı. Akış adresi erişilebilir olmayabilir.\n");
@@ -193,7 +193,7 @@ public class RadioCommands {
         var station = player.getCurrentStation();
         var sb = new StringBuilder();
         sb.append("\n").append(UIUtils.getBoxedString(new String[]{"ŞU AN ÇALIYOR"}, 38)).append("\n");
-        sb.append("  ♬ %s\n".formatted(station.name()));
+        sb.append("  %s %s\n".formatted(UIUtils.playbackAnimationFrame(), station.name()));
         appendCurrentSongInfo(sb, true);
         sb.append("  ► Ülke: %s\n".formatted(station.country()));
         sb.append("  ► Tür:  %s\n".formatted(station.genre()));
@@ -272,7 +272,7 @@ public class RadioCommands {
         PrintWriter progressOut = new PrintWriter(System.out, true, StandardCharsets.UTF_8);
         boolean success = player.play(station, progressOut);
         if (success) {
-            sb.append("  ✓ Çalınıyor! 'sonraki' ile karışık sırada devam edin.\n");
+            sb.append("  ♫ Yayın başladı. 'sonraki' ile karışık sırada devam edin.\n");
             appendCurrentSongInfo(sb, false);
         } else {
             sb.append("  ✗ Bağlantı kurulamadı. 'karistir' ile tekrar deneyin.\n");
@@ -327,7 +327,7 @@ public class RadioCommands {
         PrintWriter progressOut = new PrintWriter(System.out, true, StandardCharsets.UTF_8);
         boolean success = player.play(nextStation, progressOut);
         if (success) {
-            sb.append("  ✓ Çalınıyor! 'sonraki' veya 'onceki' ile geçiş yapabilirsiniz.\n");
+            sb.append("  ♫ Yayın başladı. 'sonraki' veya 'onceki' ile geçiş yapabilirsiniz.\n");
             appendCurrentSongInfo(sb, false);
         } else {
             sb.append("  ✗ Bağlantı kurulamadı. Bir sonraki istasyonu deneyin.\n");
@@ -723,7 +723,9 @@ public class RadioCommands {
         }
 
         if (showPendingMessage) {
-            sb.append("  ► Şarkı: Bilgi bekleniyor veya yayın desteklemiyor\n");
+            if (player.shouldShowPendingSongInfo(Duration.ofSeconds(15))) {
+                sb.append("  ► Şarkı: Bilgi bekleniyor veya yayın desteklemiyor\n");
+            }
         } else {
             sb.append("  ℹ Şarkı bilgisi geldiğinde 'durum' ve promptta görünür.\n");
         }

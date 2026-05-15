@@ -199,10 +199,23 @@ class RadioCommandsTest {
         var station = stationService.getAllStations().getFirst();
         player.playing = true;
         player.currentStation = station;
+        player.showPendingSongInfo = true;
 
         String result = commands.status();
 
         assertThat(result).contains("Bilgi bekleniyor");
+    }
+
+    @Test
+    void status_whenSongInfoMissingAfterPendingWindowHidesMetadataMessage() {
+        var station = stationService.getAllStations().getFirst();
+        player.playing = true;
+        player.currentStation = station;
+        player.showPendingSongInfo = false;
+
+        String result = commands.status();
+
+        assertThat(result).doesNotContain("Bilgi bekleniyor");
     }
 
     // --- listele / ara ---
@@ -328,6 +341,7 @@ class RadioCommandsTest {
         boolean volumeChangePending;
         boolean stopped;
         boolean sleepTimerActive;
+        boolean showPendingSongInfo;
         boolean playResult = true;
         int volume = 100;
         Integer lastSetVolume;
@@ -400,6 +414,11 @@ class RadioCommandsTest {
         @Override
         public synchronized boolean isAutoReconnecting() {
             return false;
+        }
+
+        @Override
+        public synchronized boolean shouldShowPendingSongInfo(Duration timeout) {
+            return showPendingSongInfo;
         }
 
         @Override

@@ -11,6 +11,12 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -33,23 +39,44 @@ public class AudioPlayer {
     private static final DateTimeFormatter FILE_DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
 
     private static final int MAX_RECONNECT_ATTEMPTS = 3;
+    private static final int MAX_STREAM_INFO_ATTEMPTS = 4;
     private static final long[] RECONNECT_DELAYS_MS = {2_000, 4_000, 8_000};
     private static final int MAX_HISTORY_SIZE = 50;
+    private static final Duration STREAM_INFO_TIMEOUT = Duration.ofSeconds(4);
     private static final Pattern STREAM_TITLE_SINGLE_QUOTED =
             Pattern.compile("(?i)StreamTitle\\s*=\\s*'((?:\\\\'|[^'])*)'\\s*;?");
     private static final Pattern STREAM_TITLE_DOUBLE_QUOTED =
             Pattern.compile("(?i)StreamTitle\\s*=\\s*\"((?:\\\\\"|[^\"])*)\"\\s*;?");
     private static final Pattern STREAM_TITLE_INLINE =
             Pattern.compile("(?i)(?:StreamTitle|icy-title)\\s*[:=]\\s*(.+)");
+    private static final Pattern ICY_BITRATE =
+            Pattern.compile("(?i)\\bicy-br\\s*[:=]\\s*(\\d+)");
+    private static final Pattern BITRATE =
+            Pattern.compile("(?i)\\b(?:bitrate\\s*[:=]\\s*)?(\\d+)\\s*kb/s\\b");
+    private static final Pattern AUDIO_LINE =
+            Pattern.compile("(?i)\\bAudio:\\s*([^,\\s]+)(.*)");
+    private static final Pattern SAMPLE_RATE =
+            Pattern.compile("(?i)\\b(\\d{4,6})\\s*Hz\\b");
+    private static final Pattern CHANNELS =
+            Pattern.compile("(?i)\\b(mono|stereo|\\d+\\s+channels?)\\b");
+    private static final Pattern CONTENT_TYPE_LINE =
+            Pattern.compile("(?i)\\bcontent-type\\s*[:=]\\s*([^;\\s]+)");
 
     private final RadioConfig config;
     private final SettingsService settingsService;
     private final ScheduledExecutorService sleepScheduler;
+    private final ScheduledExecutorService streamInfoScheduler;
+    private final HttpClient streamInfoClient;
 
     private Process currentProcess;
     private RadioStation currentStation;
     private String currentSongTitle;
     private SongInfo currentSongInfo;
+    private StreamInfo currentStreamInfo;
+    private LocalDateTime currentPlaybackStartedAt;
+    private ScheduledFuture<?> streamInfoFuture;
+    private int streamInfoAttempts;
+    private long playbackGeneration;
     private int volume = 100;
 
     // true while user has explicitly requested a stop — prevents watchdog reconnects
@@ -74,6 +101,26 @@ public class AudioPlayer {
 
     public record SongHistoryEntry(String stationId, String stationName, String title, LocalDateTime playedAt) {}
 
+    public record StreamInfo(Integer bitrateKbps, String codec, Integer sampleRateHz, String channels, String contentType) {
+        public boolean hasAny() {
+            return bitrateKbps != null
+                    || (codec != null && !codec.isBlank())
+                    || sampleRateHz != null
+                    || (channels != null && !channels.isBlank())
+                    || (contentType != null && !contentType.isBlank());
+        }
+
+        StreamInfo merge(StreamInfo other) {
+            if (other == null || !other.hasAny()) return this;
+            return new StreamInfo(
+                    bitrateKbps != null ? bitrateKbps : other.bitrateKbps,
+                    hasText(codec) ? codec : other.codec,
+                    sampleRateHz != null ? sampleRateHz : other.sampleRateHz,
+                    hasText(channels) ? channels : other.channels,
+                    hasText(contentType) ? contentType : other.contentType);
+        }
+    }
+
     @Autowired
     public AudioPlayer(RadioConfig config, SettingsService settingsService) {
         this.config = config;
@@ -84,6 +131,15 @@ public class AudioPlayer {
             t.setDaemon(true);
             return t;
         });
+        this.streamInfoScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "StreamInfoProbe");
+            t.setDaemon(true);
+            return t;
+        });
+        this.streamInfoClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(3))
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .build();
     }
 
     public AudioPlayer(RadioConfig config) {
@@ -108,10 +164,14 @@ public class AudioPlayer {
             currentStation = station;
             currentSongTitle = null;
             currentSongInfo = null;
+            currentStreamInfo = null;
+            currentPlaybackStartedAt = LocalDateTime.now();
+            long streamInfoGeneration = ++playbackGeneration;
 
             final Process captured = currentProcess;
             startMetadataThread(captured);
             startWatchdog(station, captured, 0);
+            startStreamInfoProbe(station, streamInfoGeneration);
 
             // Show connection progress animation
             String[] spinner = {"⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"};
@@ -136,6 +196,8 @@ public class AudioPlayer {
                 if (currentProcess.exitValue() != 0) {
                     currentStation = null;
                     currentProcess = null;
+                    currentPlaybackStartedAt = null;
+                    cancelStreamInfoProbe();
                     return false;
                 }
             }
@@ -145,11 +207,15 @@ public class AudioPlayer {
             Thread.currentThread().interrupt();
             currentStation = null;
             currentProcess = null;
+            currentPlaybackStartedAt = null;
+            cancelStreamInfoProbe();
             return false;
         } catch (IOException e) {
             log.error("Oynatma hatası: {}", e.getMessage());
             currentStation = null;
             currentProcess = null;
+            currentPlaybackStartedAt = null;
+            cancelStreamInfoProbe();
             return false;
         }
     }
@@ -174,6 +240,29 @@ public class AudioPlayer {
 
     public synchronized SongInfo getCurrentSongInfo() {
         return currentSongInfo;
+    }
+
+    public synchronized StreamInfo getCurrentStreamInfo() {
+        return currentStreamInfo != null && currentStreamInfo.hasAny() ? currentStreamInfo : null;
+    }
+
+    public synchronized boolean shouldShowPendingSongInfo(Duration timeout) {
+        if (!isPlaying() || currentStation == null || currentPlaybackStartedAt == null) {
+            return false;
+        }
+        if ((currentSongInfo != null && currentSongInfo.rawTitle() != null && !currentSongInfo.rawTitle().isBlank())
+                || (currentSongTitle != null && !currentSongTitle.isBlank())) {
+            return false;
+        }
+        return Duration.between(currentPlaybackStartedAt, LocalDateTime.now()).compareTo(timeout) < 0;
+    }
+
+    public synchronized Duration getPlaybackElapsed() {
+        if (!isPlaying() || currentPlaybackStartedAt == null) {
+            return Duration.ZERO;
+        }
+        Duration elapsed = Duration.between(currentPlaybackStartedAt, LocalDateTime.now());
+        return elapsed.isNegative() ? Duration.ZERO : elapsed;
     }
 
     public synchronized int getVolume() {
@@ -284,7 +373,9 @@ public class AudioPlayer {
     @PreDestroy
     public synchronized void shutdown() {
         cancelSleepTimer();
+        cancelStreamInfoProbe();
         sleepScheduler.shutdownNow();
+        streamInfoScheduler.shutdownNow();
     }
 
     // -------------------------------------------------------------------------
@@ -335,6 +426,9 @@ public class AudioPlayer {
         currentStation = null;
         currentSongTitle = null;
         currentSongInfo = null;
+        currentStreamInfo = null;
+        currentPlaybackStartedAt = null;
+        cancelStreamInfoProbe();
     }
 
     private void startMetadataThread(Process capturedProcess) {
@@ -348,6 +442,14 @@ public class AudioPlayer {
                         synchronized (this) {
                             if (currentProcess == capturedProcess) {
                                 updateSongTitle(title);
+                            }
+                        }
+                    }
+                    var streamInfo = extractStreamInfo(line);
+                    if (streamInfo.hasAny()) {
+                        synchronized (this) {
+                            if (currentProcess == capturedProcess) {
+                                updateStreamInfo(streamInfo, playbackGeneration);
                             }
                         }
                     }
@@ -387,6 +489,9 @@ public class AudioPlayer {
                     if (!stopRequested && currentProcess == monitoredProcess) {
                         currentStation = null;
                         currentProcess = null;
+                        currentStreamInfo = null;
+                        currentPlaybackStartedAt = null;
+                        cancelStreamInfoProbe();
                     }
                 }
                 return;
@@ -421,14 +526,21 @@ public class AudioPlayer {
             currentStation = station;
             currentSongTitle = null;
             currentSongInfo = null;
+            currentStreamInfo = null;
+            currentPlaybackStartedAt = LocalDateTime.now();
+            long streamInfoGeneration = ++playbackGeneration;
             saveLastStation(station);
             startMetadataThread(newProcess);
             startWatchdog(station, newProcess, generation);
+            startStreamInfoProbe(station, streamInfoGeneration);
             log.info("Yeniden bağlandı ({}/{}): {}", generation, MAX_RECONNECT_ATTEMPTS, station.name());
         } catch (IOException e) {
             log.error("Yeniden bağlanma hatası: {}", e.getMessage());
             currentStation = null;
             currentProcess = null;
+            currentStreamInfo = null;
+            currentPlaybackStartedAt = null;
+            cancelStreamInfoProbe();
         }
     }
 
@@ -468,6 +580,119 @@ public class AudioPlayer {
         }
     }
 
+    private synchronized void startStreamInfoProbe(RadioStation station, long generation) {
+        cancelStreamInfoProbe();
+        streamInfoAttempts = 0;
+        streamInfoFuture = streamInfoScheduler.scheduleWithFixedDelay(
+                () -> runStreamInfoProbe(station, generation),
+                1,
+                3,
+                TimeUnit.SECONDS);
+    }
+
+    private void runStreamInfoProbe(RadioStation station, long generation) {
+        synchronized (this) {
+            if (!isCurrentPlayback(station, generation) || hasEnoughStreamInfo(currentStreamInfo)) {
+                cancelStreamInfoProbe();
+                return;
+            }
+        }
+
+        StreamInfo streamInfo = probeStreamInfoFromHttp(station);
+
+        synchronized (this) {
+            if (!isCurrentPlayback(station, generation)) {
+                cancelStreamInfoProbe();
+                return;
+            }
+
+            streamInfoAttempts++;
+            updateStreamInfo(streamInfo, generation);
+
+            if (hasEnoughStreamInfo(currentStreamInfo) || streamInfoAttempts >= MAX_STREAM_INFO_ATTEMPTS) {
+                cancelStreamInfoProbe();
+            }
+        }
+    }
+
+    private synchronized void cancelStreamInfoProbe() {
+        if (streamInfoFuture != null) {
+            streamInfoFuture.cancel(false);
+            streamInfoFuture = null;
+        }
+        streamInfoAttempts = 0;
+    }
+
+    private synchronized void updateStreamInfo(StreamInfo streamInfo, long generation) {
+        if (generation != playbackGeneration || streamInfo == null || !streamInfo.hasAny()) {
+            return;
+        }
+        currentStreamInfo = currentStreamInfo == null ? streamInfo : currentStreamInfo.merge(streamInfo);
+    }
+
+    private synchronized boolean isCurrentPlayback(RadioStation station, long generation) {
+        return generation == playbackGeneration
+                && station != null
+                && currentStation != null
+                && station.id().equals(currentStation.id())
+                && isPlaying();
+    }
+
+    private static boolean hasEnoughStreamInfo(StreamInfo streamInfo) {
+        return streamInfo != null
+                && streamInfo.bitrateKbps() != null
+                && (hasText(streamInfo.codec()) || hasText(streamInfo.contentType()));
+    }
+
+    private StreamInfo probeStreamInfoFromHttp(RadioStation station) {
+        StreamInfo headInfo = requestStreamInfo(station, "HEAD");
+        if (hasEnoughStreamInfo(headInfo)) {
+            return headInfo;
+        }
+        return headInfo.merge(requestStreamInfo(station, "GET"));
+    }
+
+    private StreamInfo requestStreamInfo(RadioStation station, String method) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(station.url()))
+                    .timeout(STREAM_INFO_TIMEOUT)
+                    .header("Icy-MetaData", "1")
+                    .header("User-Agent", "Radio Shell/1.0")
+                    .method(method, HttpRequest.BodyPublishers.noBody())
+                    .build();
+
+            if ("GET".equals(method)) {
+                HttpResponse<InputStream> response = streamInfoClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+                try (InputStream ignored = response.body()) {
+                    return streamInfoFromHeaders(response.headers());
+                }
+            }
+
+            HttpResponse<Void> response = streamInfoClient.send(request, HttpResponse.BodyHandlers.discarding());
+            return streamInfoFromHeaders(response.headers());
+        } catch (Exception e) {
+            return emptyStreamInfo();
+        }
+    }
+
+    private static StreamInfo streamInfoFromHeaders(HttpHeaders headers) {
+        Integer bitrate = parsePositiveInt(firstHeader(headers, "icy-br"));
+        String contentType = normalizeContentType(firstHeader(headers, "content-type"));
+        String codec = inferCodec(contentType);
+        return new StreamInfo(bitrate, codec, null, null, contentType);
+    }
+
+    private static String firstHeader(HttpHeaders headers, String name) {
+        if (headers == null || name == null) return null;
+        return headers.map().entrySet().stream()
+                .filter(entry -> entry.getKey().equalsIgnoreCase(name))
+                .flatMap(entry -> entry.getValue().stream())
+                .filter(AudioPlayer::hasText)
+                .findFirst()
+                .orElse(null);
+    }
+
     private void saveLastStation(RadioStation station) {
         if (settingsService != null && station != null) {
             settingsService.setLastStationId(station.id());
@@ -495,6 +720,55 @@ public class AudioPlayer {
         return null;
     }
 
+    static StreamInfo extractStreamInfo(String line) {
+        if (line == null || line.isBlank()) return emptyStreamInfo();
+
+        Integer bitrate = null;
+        String codec = null;
+        Integer sampleRate = null;
+        String channels = null;
+        String contentType = null;
+
+        var icyBitrate = ICY_BITRATE.matcher(line);
+        if (icyBitrate.find()) {
+            bitrate = parsePositiveInt(icyBitrate.group(1));
+        }
+
+        var contentTypeMatch = CONTENT_TYPE_LINE.matcher(line);
+        if (contentTypeMatch.find()) {
+            contentType = normalizeContentType(contentTypeMatch.group(1));
+            codec = inferCodec(contentType);
+        }
+
+        var audioLine = AUDIO_LINE.matcher(line);
+        if (audioLine.find()) {
+            codec = normalizeCodec(audioLine.group(1));
+            String detail = audioLine.group(2);
+
+            var sampleRateMatch = SAMPLE_RATE.matcher(detail);
+            if (sampleRateMatch.find()) {
+                sampleRate = parsePositiveInt(sampleRateMatch.group(1));
+            }
+
+            var channelsMatch = CHANNELS.matcher(detail);
+            if (channelsMatch.find()) {
+                channels = channelsMatch.group(1).toLowerCase();
+            }
+
+            var bitrateMatch = BITRATE.matcher(detail);
+            if (bitrateMatch.find()) {
+                bitrate = parsePositiveInt(bitrateMatch.group(1));
+            }
+        } else if (bitrate == null) {
+            var bitrateMatch = BITRATE.matcher(line);
+            if (bitrateMatch.find()) {
+                bitrate = parsePositiveInt(bitrateMatch.group(1));
+            }
+        }
+
+        return new StreamInfo(bitrate, codec, sampleRate, channels, contentType);
+    }
+
     static SongInfo toSongInfo(String rawTitle) {
         String normalized = cleanMetadataValue(rawTitle);
         if (normalized == null) {
@@ -513,6 +787,61 @@ public class AudioPlayer {
         }
 
         return new SongInfo(normalized, artist, title, LocalDateTime.now());
+    }
+
+    private static StreamInfo emptyStreamInfo() {
+        return new StreamInfo(null, null, null, null, null);
+    }
+
+    private static Integer parsePositiveInt(String value) {
+        if (!hasText(value)) return null;
+        try {
+            int parsed = Integer.parseInt(value.trim());
+            return parsed > 0 ? parsed : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private static String normalizeContentType(String value) {
+        if (!hasText(value)) return null;
+        String normalized = value.trim().toLowerCase();
+        int semicolon = normalized.indexOf(';');
+        if (semicolon >= 0) {
+            normalized = normalized.substring(0, semicolon).trim();
+        }
+        return normalized.isBlank() ? null : normalized;
+    }
+
+    private static String normalizeCodec(String value) {
+        if (!hasText(value)) return null;
+        String normalized = value.trim().toLowerCase();
+        int openParen = normalized.indexOf('(');
+        if (openParen > 0) {
+            normalized = normalized.substring(0, openParen).trim();
+        }
+        return switch (normalized) {
+            case "aac_latm", "aacp" -> "aac";
+            case "mp3float" -> "mp3";
+            default -> normalized;
+        };
+    }
+
+    private static String inferCodec(String contentType) {
+        if (!hasText(contentType)) return null;
+        return switch (contentType.toLowerCase()) {
+            case "audio/mpeg", "audio/mp3" -> "mp3";
+            case "audio/aac", "audio/aacp", "audio/x-aac" -> "aac";
+            case "audio/ogg", "application/ogg" -> "ogg";
+            case "audio/flac", "audio/x-flac" -> "flac";
+            case "audio/wav", "audio/x-wav", "audio/wave" -> "wav";
+            case "audio/mp4", "audio/x-m4a" -> "aac";
+            default -> null;
+        };
+    }
+
+    private static boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 
     private static String cleanMetadataValue(String value) {
