@@ -254,7 +254,11 @@ public class InteractiveShell implements ApplicationRunner {
         var t = theme();
         if (player.isPlaying() && player.getCurrentStation() != null) {
             var station = player.getCurrentStation();
-            var song = player.getCurrentSongTitle();
+            var songInfo = player.getCurrentSongInfo();
+            var song = songInfo != null ? songInfo.displayTitle() : player.getCurrentSongTitle();
+            if (song != null && !song.isBlank()) {
+                song = UIUtils.truncate(song, 45);
+            }
             var info = station.name() + (song != null && !song.isBlank() ? " - " + song : "");
             return t.secondary() + t.bold() + "♬ [" + info + "] "
                     + t.reset() + t.primary() + t.bold() + "radio> " + t.reset();
@@ -295,7 +299,7 @@ public class InteractiveShell implements ApplicationRunner {
         out.println("    cal -i <id>          - İstasyonu çalar (ID veya isim)");
         out.println("    son                  - Son çalınan istasyonu çalar");
         out.println("    dur                  - Çalmayı durdurur");
-        out.println("    durum                - Şu an çalanı gösterir");
+        out.println("    durum                - Şu an çalanı ve şarkı bilgisini gösterir");
         out.println("    ses -s <0-100>       - Ses seviyesini ayarlar");
         out.println("    sonraki              - Listedeki sonraki istasyona geçer");
         out.println("    onceki               - Listedeki önceki istasyona geçer");

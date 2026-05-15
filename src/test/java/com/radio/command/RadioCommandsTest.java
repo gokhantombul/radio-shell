@@ -180,6 +180,31 @@ class RadioCommandsTest {
         assertThat(result).contains(station.name());
     }
 
+    @Test
+    void status_whenSongInfoAvailableShowsArtistAndTitle() {
+        var station = stationService.getAllStations().getFirst();
+        player.playing = true;
+        player.currentStation = station;
+        player.currentSongInfo = new AudioPlayer.SongInfo(
+                "Artist - Song", "Artist", "Song", LocalDateTime.of(2026, 5, 15, 12, 0));
+
+        String result = commands.status();
+
+        assertThat(result).contains("Sanatçı: Artist");
+        assertThat(result).contains("Şarkı: Song");
+    }
+
+    @Test
+    void status_whenSongInfoMissingShowsPendingMetadataMessage() {
+        var station = stationService.getAllStations().getFirst();
+        player.playing = true;
+        player.currentStation = station;
+
+        String result = commands.status();
+
+        assertThat(result).contains("Bilgi bekleniyor");
+    }
+
     // --- listele / ara ---
 
     @Test
@@ -308,6 +333,8 @@ class RadioCommandsTest {
         Integer lastSetVolume;
         RadioStation currentStation;
         RadioStation playedStation;
+        String currentSongTitle;
+        SongInfo currentSongInfo;
         Path recordFile;
         Duration sleepDuration;
         LocalDateTime sleepEndsAt;
@@ -346,7 +373,12 @@ class RadioCommandsTest {
 
         @Override
         public synchronized String getCurrentSongTitle() {
-            return null;
+            return currentSongTitle;
+        }
+
+        @Override
+        public synchronized SongInfo getCurrentSongInfo() {
+            return currentSongInfo;
         }
 
         @Override

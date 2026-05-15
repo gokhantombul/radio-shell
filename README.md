@@ -110,7 +110,7 @@ docker run --rm -it \
 | `cal -i <id>` | İstasyonu çalar (ID veya isim) |
 | `son` | Son çalınan istasyonu tekrar çalar |
 | `dur` | Çalmayı durdurur |
-| `durum` | Şu an çalan istasyonu gösterir |
+| `durum` | Şu an çalan istasyonu ve varsa şarkı bilgisini gösterir |
 | `ses -s <0-100>` | Ses seviyesini ayarlar |
 | `sonraki` | Son listede bir sonraki istasyona geçer |
 | `onceki` | Son listede bir önceki istasyona geçer |
@@ -412,7 +412,7 @@ docker run --rm -it \
 | `cal -i <id>` | Play a station (by ID or name) |
 | `son` | Play the last station again |
 | `dur` | Stop playback |
-| `durum` | Show currently playing station |
+| `durum` | Show currently playing station and song metadata when available |
 | `ses -s <0-100>` | Set volume level |
 | `sonraki` | Move to the next station in the last list |
 | `onceki` | Move to the previous station in the last list |

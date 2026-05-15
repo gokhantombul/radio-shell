@@ -24,6 +24,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 @Component
 public class AudioPlayer {
@@ -34,6 +35,12 @@ public class AudioPlayer {
     private static final int MAX_RECONNECT_ATTEMPTS = 3;
     private static final long[] RECONNECT_DELAYS_MS = {2_000, 4_000, 8_000};
     private static final int MAX_HISTORY_SIZE = 50;
+    private static final Pattern STREAM_TITLE_SINGLE_QUOTED =
+            Pattern.compile("(?i)StreamTitle\\s*=\\s*'((?:\\\\'|[^'])*)'\\s*;?");
+    private static final Pattern STREAM_TITLE_DOUBLE_QUOTED =
+            Pattern.compile("(?i)StreamTitle\\s*=\\s*\"((?:\\\\\"|[^\"])*)\"\\s*;?");
+    private static final Pattern STREAM_TITLE_INLINE =
+            Pattern.compile("(?i)(?:StreamTitle|icy-title)\\s*[:=]\\s*(.+)");
 
     private final RadioConfig config;
     private final SettingsService settingsService;
@@ -42,6 +49,7 @@ public class AudioPlayer {
     private Process currentProcess;
     private RadioStation currentStation;
     private String currentSongTitle;
+    private SongInfo currentSongInfo;
     private int volume = 100;
 
     // true while user has explicitly requested a stop — prevents watchdog reconnects
@@ -54,6 +62,15 @@ public class AudioPlayer {
     private LocalDateTime sleepEndsAt;
 
     private final Deque<SongHistoryEntry> songHistory = new ArrayDeque<>();
+
+    public record SongInfo(String rawTitle, String artist, String title, LocalDateTime updatedAt) {
+        public String displayTitle() {
+            if (artist != null && !artist.isBlank() && title != null && !title.isBlank()) {
+                return artist + " - " + title;
+            }
+            return rawTitle;
+        }
+    }
 
     public record SongHistoryEntry(String stationId, String stationName, String title, LocalDateTime playedAt) {}
 
@@ -90,6 +107,7 @@ public class AudioPlayer {
             currentProcess = pb.start();
             currentStation = station;
             currentSongTitle = null;
+            currentSongInfo = null;
 
             final Process captured = currentProcess;
             startMetadataThread(captured);
@@ -152,6 +170,10 @@ public class AudioPlayer {
 
     public synchronized String getCurrentSongTitle() {
         return currentSongTitle;
+    }
+
+    public synchronized SongInfo getCurrentSongInfo() {
+        return currentSongInfo;
     }
 
     public synchronized int getVolume() {
@@ -281,10 +303,23 @@ public class AudioPlayer {
                 command.add(arg);
             }
         }
+        if (isFfplayCommand() && !hasOption(command, "-icy")) {
+            command.add("-icy");
+            command.add("1");
+        }
         command.add("-volume");
         command.add(String.valueOf(volume));
         command.add(station.url());
         return command;
+    }
+
+    private boolean isFfplayCommand() {
+        String command = config.getPlayer().getCommand();
+        return command != null && Path.of(command).getFileName().toString().equals("ffplay");
+    }
+
+    private boolean hasOption(List<String> command, String option) {
+        return command.stream().anyMatch(option::equals);
     }
 
     private void killCurrentProcess() {
@@ -298,6 +333,8 @@ public class AudioPlayer {
         }
         currentProcess = null;
         currentStation = null;
+        currentSongTitle = null;
+        currentSongInfo = null;
     }
 
     private void startMetadataThread(Process capturedProcess) {
@@ -306,17 +343,11 @@ public class AudioPlayer {
                     new java.io.InputStreamReader(capturedProcess.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    if (line.contains("StreamTitle")) {
-                        int start = line.indexOf("StreamTitle='") + 13;
-                        if (start > 12) {
-                            int end = line.indexOf("';", start);
-                            if (end > start) {
-                                String title = line.substring(start, end).trim();
-                                synchronized (this) {
-                                    if (currentProcess == capturedProcess) {
-                                        updateSongTitle(title);
-                                    }
-                                }
+                    String title = extractSongTitle(line);
+                    if (title != null) {
+                        synchronized (this) {
+                            if (currentProcess == capturedProcess) {
+                                updateSongTitle(title);
                             }
                         }
                     }
@@ -389,6 +420,7 @@ public class AudioPlayer {
             currentProcess = newProcess;
             currentStation = station;
             currentSongTitle = null;
+            currentSongInfo = null;
             saveLastStation(station);
             startMetadataThread(newProcess);
             startWatchdog(station, newProcess, generation);
@@ -412,20 +444,23 @@ public class AudioPlayer {
 
     private void updateSongTitle(String title) {
         if (title == null || title.isBlank()) return;
-        this.currentSongTitle = title;
+        SongInfo songInfo = toSongInfo(title);
+        if (songInfo.rawTitle().isBlank()) return;
+        this.currentSongTitle = songInfo.rawTitle();
+        this.currentSongInfo = songInfo;
 
         if (currentStation == null) return;
         var latest = songHistory.peekFirst();
         if (latest != null
                 && latest.stationId().equals(currentStation.id())
-                && latest.title().equals(title)) {
+                && latest.title().equals(songInfo.rawTitle())) {
             return;
         }
 
         songHistory.addFirst(new SongHistoryEntry(
                 currentStation.id(),
                 currentStation.name(),
-                title,
+                songInfo.rawTitle(),
                 LocalDateTime.now()));
 
         while (songHistory.size() > MAX_HISTORY_SIZE) {
@@ -437,5 +472,64 @@ public class AudioPlayer {
         if (settingsService != null && station != null) {
             settingsService.setLastStationId(station.id());
         }
+    }
+
+    static String extractSongTitle(String line) {
+        if (line == null || line.isBlank()) return null;
+
+        var singleQuoted = STREAM_TITLE_SINGLE_QUOTED.matcher(line);
+        if (singleQuoted.find()) {
+            return cleanMetadataValue(singleQuoted.group(1));
+        }
+
+        var doubleQuoted = STREAM_TITLE_DOUBLE_QUOTED.matcher(line);
+        if (doubleQuoted.find()) {
+            return cleanMetadataValue(doubleQuoted.group(1));
+        }
+
+        var inline = STREAM_TITLE_INLINE.matcher(line);
+        if (inline.find()) {
+            return cleanMetadataValue(inline.group(1));
+        }
+
+        return null;
+    }
+
+    static SongInfo toSongInfo(String rawTitle) {
+        String normalized = cleanMetadataValue(rawTitle);
+        if (normalized == null) {
+            return new SongInfo("", null, "", LocalDateTime.now());
+        }
+        String artist = null;
+        String title = normalized;
+
+        for (String separator : List.of(" - ", " – ", " — ", " | ")) {
+            int idx = normalized.indexOf(separator);
+            if (idx > 0 && idx + separator.length() < normalized.length()) {
+                artist = normalized.substring(0, idx).trim();
+                title = normalized.substring(idx + separator.length()).trim();
+                break;
+            }
+        }
+
+        return new SongInfo(normalized, artist, title, LocalDateTime.now());
+    }
+
+    private static String cleanMetadataValue(String value) {
+        if (value == null) return null;
+        String cleaned = value.trim()
+                .replace("\\'", "'")
+                .replace("\\\"", "\"")
+                .replace("&apos;", "'")
+                .replace("&quot;", "\"");
+
+        while (cleaned.endsWith(";")) {
+            cleaned = cleaned.substring(0, cleaned.length() - 1).trim();
+        }
+        if ((cleaned.startsWith("'") && cleaned.endsWith("'"))
+                || (cleaned.startsWith("\"") && cleaned.endsWith("\""))) {
+            cleaned = cleaned.substring(1, cleaned.length() - 1).trim();
+        }
+        return cleaned.isBlank() ? null : cleaned;
     }
 }

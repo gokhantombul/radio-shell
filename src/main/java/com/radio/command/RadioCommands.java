@@ -149,6 +149,7 @@ public class RadioCommands {
         boolean success = player.play(station, progressOut);
         if (success) {
             sb.append("  ✓ Çalınıyor! Durdurmak için 'dur' yazın.\n");
+            appendCurrentSongInfo(sb, false);
         } else {
             sb.append("  ✗ Bağlantı kurulamadı. Akış adresi erişilebilir olmayabilir.\n");
         }
@@ -190,13 +191,10 @@ public class RadioCommands {
             return "  ⏸ Şu an çalan bir istasyon yok.";
         }
         var station = player.getCurrentStation();
-        var song = player.getCurrentSongTitle();
         var sb = new StringBuilder();
         sb.append("\n").append(UIUtils.getBoxedString(new String[]{"ŞU AN ÇALIYOR"}, 38)).append("\n");
         sb.append("  ♬ %s\n".formatted(station.name()));
-        if (song != null && !song.isBlank()) {
-            sb.append("  ❯❯ %s\n".formatted(song));
-        }
+        appendCurrentSongInfo(sb, true);
         sb.append("  ► Ülke: %s\n".formatted(station.country()));
         sb.append("  ► Tür:  %s\n".formatted(station.genre()));
         sb.append("  ► Ses:  %%%d\n".formatted(player.getVolume()));
@@ -275,6 +273,7 @@ public class RadioCommands {
         boolean success = player.play(station, progressOut);
         if (success) {
             sb.append("  ✓ Çalınıyor! 'sonraki' ile karışık sırada devam edin.\n");
+            appendCurrentSongInfo(sb, false);
         } else {
             sb.append("  ✗ Bağlantı kurulamadı. 'karistir' ile tekrar deneyin.\n");
         }
@@ -329,6 +328,7 @@ public class RadioCommands {
         boolean success = player.play(nextStation, progressOut);
         if (success) {
             sb.append("  ✓ Çalınıyor! 'sonraki' veya 'onceki' ile geçiş yapabilirsiniz.\n");
+            appendCurrentSongInfo(sb, false);
         } else {
             sb.append("  ✗ Bağlantı kurulamadı. Bir sonraki istasyonu deneyin.\n");
         }
@@ -702,6 +702,31 @@ public class RadioCommands {
         sb.append("  └────────┴─────────────────────────┴──────────────┴────────────────────┴──────────────────────┘\n");
         sb.append("  Toplam: %d istasyon | Çalmak için: cal -i <ID>\n".formatted(stations.size()));
         return sb.toString();
+    }
+
+    private void appendCurrentSongInfo(StringBuilder sb, boolean showPendingMessage) {
+        var songInfo = player.getCurrentSongInfo();
+        if (songInfo != null && songInfo.rawTitle() != null && !songInfo.rawTitle().isBlank()) {
+            if (songInfo.artist() != null && !songInfo.artist().isBlank()) {
+                sb.append("  ► Sanatçı: %s\n".formatted(songInfo.artist()));
+                sb.append("  ► Şarkı: %s\n".formatted(songInfo.title()));
+            } else {
+                sb.append("  ► Şarkı: %s\n".formatted(songInfo.rawTitle()));
+            }
+            return;
+        }
+
+        var rawTitle = player.getCurrentSongTitle();
+        if (rawTitle != null && !rawTitle.isBlank()) {
+            sb.append("  ► Şarkı: %s\n".formatted(rawTitle));
+            return;
+        }
+
+        if (showPendingMessage) {
+            sb.append("  ► Şarkı: Bilgi bekleniyor veya yayın desteklemiyor\n");
+        } else {
+            sb.append("  ℹ Şarkı bilgisi geldiğinde 'durum' ve promptta görünür.\n");
+        }
     }
 
     private String validateStreamUrl(String url) {

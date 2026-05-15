@@ -82,6 +82,37 @@ class AudioPlayerTest {
     @Test
     void getCurrentSongTitle_initiallyNull() {
         assertThat(player.getCurrentSongTitle()).isNull();
+        assertThat(player.getCurrentSongInfo()).isNull();
+    }
+
+    @Test
+    void extractSongTitle_parsesQuotedStreamTitle() {
+        String result = AudioPlayer.extractSongTitle("Metadata update for StreamTitle='Artist - Song';StreamUrl='';");
+
+        assertThat(result).isEqualTo("Artist - Song");
+    }
+
+    @Test
+    void extractSongTitle_parsesColonStreamTitle() {
+        String result = AudioPlayer.extractSongTitle("    StreamTitle        : Artist - Song");
+
+        assertThat(result).isEqualTo("Artist - Song");
+    }
+
+    @Test
+    void extractSongTitle_parsesIcyTitle() {
+        String result = AudioPlayer.extractSongTitle("icy-title: Artist | Song");
+
+        assertThat(result).isEqualTo("Artist | Song");
+    }
+
+    @Test
+    void toSongInfo_splitsArtistAndTitle() {
+        var songInfo = AudioPlayer.toSongInfo("Artist - Song");
+
+        assertThat(songInfo.artist()).isEqualTo("Artist");
+        assertThat(songInfo.title()).isEqualTo("Song");
+        assertThat(songInfo.displayTitle()).isEqualTo("Artist - Song");
     }
 
     @Test
