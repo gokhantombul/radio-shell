@@ -108,7 +108,7 @@ public class InteractiveShell implements ApplicationRunner {
                 String query = word.toLowerCase(TR);
 
                 if (prevWord != null && stationIdOptions.contains(prevWord)
-                        && Set.of("cal", "favori", "sil").contains(cmdName)) {
+                        && Set.of("cal", "favori", "sil", "duzenle", "kontrol").contains(cmdName)) {
                     // Station ID value completion — contains match on ID or name
                     stationService.getAllStations().stream()
                             .filter(s -> s.id().toLowerCase(TR).contains(query)
@@ -268,7 +268,7 @@ public class InteractiveShell implements ApplicationRunner {
         String[] lines = {
             "♬  ░░░ RADIO SHELL ░░░  ♬",
             "Terminal FM Radio Player - Türkiye & Dünya",
-            "v1.0.0 | Spring Boot 4 + Java 25"
+            "v1.0.0 | Spring Boot 4 + Java 21"
         };
         UIUtils.printBoxed(out, lines, 60, t.primary() + t.bold());
         out.println();
@@ -293,6 +293,7 @@ public class InteractiveShell implements ApplicationRunner {
         out.println();
         out.println("  " + t.bold() + "OYNATMA" + t.reset());
         out.println("    cal -i <id>          - İstasyonu çalar (ID veya isim)");
+        out.println("    son                  - Son çalınan istasyonu çalar");
         out.println("    dur                  - Çalmayı durdurur");
         out.println("    durum                - Şu an çalanı gösterir");
         out.println("    ses -s <0-100>       - Ses seviyesini ayarlar");
@@ -302,6 +303,9 @@ public class InteractiveShell implements ApplicationRunner {
         out.println("      -u <ülke>          - Belirli ülkeden rastgele");
         out.println("      -t <tür>           - Belirli türden rastgele");
         out.println("      -f                 - Favorilerden rastgele");
+        out.println("    uyku -d <dakika>     - Süre sonunda oynatmayı durdurur");
+        out.println("    uyku iptal           - Uyku zamanlayıcısını iptal eder");
+        out.println("    gecmis               - Son görülen şarkı bilgilerini listeler");
         out.println();
         out.println("  " + t.bold() + "KAYIT" + t.reset());
         out.println("    kaydet               - Yayını MP3 olarak kaydetmeye başlar");
@@ -315,6 +319,8 @@ public class InteractiveShell implements ApplicationRunner {
         out.println("    kontrol              - Tüm istasyonların URL'lerini kontrol eder");
         out.println("    kontrol -i <id>      - Belirli istasyonu kontrol eder");
         out.println("    ekle --id <id> --isim <isim> --ulke <ülke> --tur <tür> --url <url>");
+        out.println("    duzenle --id <id>    - Özel istasyonu düzenler");
+        out.println("    iceaktar -d <dosya>  - M3U/PLS playlist içe aktarır");
         out.println("    sil --id <id>        - Özel istasyonu siler");
         out.println("    tema                 - Renk temasını değiştirir");
         out.println();

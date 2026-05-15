@@ -2,10 +2,12 @@ package com.radio.command;
 
 import com.radio.model.RadioStation;
 import com.radio.player.AudioPlayer;
+import com.radio.service.SettingsService;
 import com.radio.service.StationService;
 import com.radio.util.Theme;
 import com.radio.util.ThemeManager;
 import com.radio.util.UIUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.core.command.annotation.Command;
 import org.springframework.shell.core.command.annotation.Option;
 
@@ -18,8 +20,10 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,14 +36,21 @@ public class RadioCommands {
     private final StationService stationService;
     private final AudioPlayer player;
     private final ThemeManager themeManager;
+    private final SettingsService settingsService;
 
     // Navigation context: last displayed station list for sonraki/onceki commands
     private List<RadioStation> navigationList = List.of();
 
-    public RadioCommands(StationService stationService, AudioPlayer player, ThemeManager themeManager) {
+    @Autowired
+    public RadioCommands(StationService stationService, AudioPlayer player, ThemeManager themeManager, SettingsService settingsService) {
         this.stationService = stationService;
         this.player = player;
         this.themeManager = themeManager;
+        this.settingsService = settingsService;
+    }
+
+    public RadioCommands(StationService stationService, AudioPlayer player, ThemeManager themeManager) {
+        this(stationService, player, themeManager, null);
     }
 
     @Command(name = "listele", description = "Tüm radyo istasyonlarını listeler", group = "Radio")
@@ -144,6 +155,14 @@ public class RadioCommands {
         return sb.toString();
     }
 
+    @Command(name = "son", description = "Son çalınan istasyonu çalar", group = "Radio")
+    public String playLast() {
+        if (settingsService == null || settingsService.getLastStationId() == null || settingsService.getLastStationId().isBlank()) {
+            return "  ⚠ Henüz kayıtlı son istasyon yok. Önce 'cal -i <id>' ile bir istasyon çalın.";
+        }
+        return play(settingsService.getLastStationId());
+    }
+
     @Command(name = "dur", description = "Çalan radyoyu durdurur", group = "Radio")
     public String stop() {
         if (!player.isPlaying()) {
@@ -184,6 +203,9 @@ public class RadioCommands {
         sb.append("  ► ID:   %s\n".formatted(station.id()));
         if (player.isRecording()) {
             sb.append("  ⏺ Kayıt: %s\n".formatted(player.getRecordFile().getFileName()));
+        }
+        if (player.isSleepTimerActive()) {
+            sb.append("  ◷ Uyku: %s dakika kaldı\n".formatted(formatMinutes(player.getSleepRemaining())));
         }
         return sb.toString();
     }
@@ -368,6 +390,65 @@ public class RadioCommands {
         return "  ■ Kayıt durduruldu.\n  ► Dosya: %s".formatted(file);
     }
 
+    @Command(name = "uyku", description = "Uyku zamanlayıcısını gösterir veya başlatır", group = "Oynatma")
+    public String sleepTimer(
+            @Option(longName = "dakika", shortName = 'd', required = false, description = "Kaç dakika sonra duracağı") Integer minutes) {
+        if (minutes == null) {
+            if (!player.isSleepTimerActive()) {
+                return "  ◷ Uyku zamanlayıcısı aktif değil. Kullanım: uyku -d <dakika>";
+            }
+            return "  ◷ Uyku zamanlayıcısı aktif: %s dakika kaldı. İptal için: uyku iptal"
+                    .formatted(formatMinutes(player.getSleepRemaining()));
+        }
+        if (minutes <= 0) {
+            return "  ⚠ Dakika değeri 1 veya daha büyük olmalıdır.";
+        }
+
+        player.scheduleSleep(Duration.ofMinutes(minutes));
+        var endsAt = player.getSleepEndsAt();
+        String endTime = endsAt != null ? endsAt.format(DateTimeFormatter.ofPattern("HH:mm")) : "";
+        return "  ◷ Uyku zamanlayıcısı ayarlandı: %d dakika sonra duracak. Bitiş: %s"
+                .formatted(minutes, endTime);
+    }
+
+    @Command(name = "uyku iptal", description = "Uyku zamanlayıcısını iptal eder", group = "Oynatma")
+    public String cancelSleepTimer() {
+        return player.cancelSleepTimer()
+                ? "  ◷ Uyku zamanlayıcısı iptal edildi."
+                : "  ⚠ Aktif uyku zamanlayıcısı yok.";
+    }
+
+    @Command(name = "gecmis", description = "Son görülen şarkı bilgilerini listeler", group = "Oynatma")
+    public String songHistory(
+            @Option(longName = "adet", shortName = 'n', required = false, description = "Gösterilecek kayıt sayısı", defaultValue = "10") int limit) {
+        if (limit <= 0) {
+            return "  ⚠ Kayıt sayısı 1 veya daha büyük olmalıdır.";
+        }
+
+        var history = player.getSongHistory();
+        if (history.isEmpty()) {
+            return "  ⚠ Henüz şarkı bilgisi alınmadı. Bazı yayınlar metadata göndermeyebilir.";
+        }
+
+        var sb = new StringBuilder();
+        sb.append("\n").append(UIUtils.getBoxedString(new String[]{"ŞARKI GEÇMİŞİ"}, 44)).append("\n");
+        sb.append("  ┌──────────┬─────────────────────────┬──────────────────────────────┐\n");
+        sb.append("  │ Saat     │ İstasyon                │ Parça                        │\n");
+        sb.append("  ├──────────┼─────────────────────────┼──────────────────────────────┤\n");
+
+        int count = Math.min(limit, history.size());
+        var timeFormat = DateTimeFormatter.ofPattern("HH:mm:ss");
+        for (int i = 0; i < count; i++) {
+            var entry = history.get(i);
+            sb.append("  │ %s │ %s │ %s │\n".formatted(
+                    UIUtils.padRight(entry.playedAt().format(timeFormat), 8),
+                    UIUtils.padRight(UIUtils.truncate(entry.stationName(), 23), 23),
+                    UIUtils.padRight(UIUtils.truncate(entry.title(), 28), 28)));
+        }
+        sb.append("  └──────────┴─────────────────────────┴──────────────────────────────┘\n");
+        return sb.toString();
+    }
+
     @Command(name = "tema", description = "Renk temasını değiştirir", group = "Yönetim")
     public String theme(
             @Option(longName = "isim", shortName = 'i', required = false, description = "Tema adı") String name) {
@@ -510,17 +591,73 @@ public class RadioCommands {
         if (stationService.findStation(id).isPresent()) {
             return "  ⚠ '%s' ID'si zaten mevcut.".formatted(id);
         }
-        try {
-            var uri = URI.create(url);
-            if (uri.getScheme() == null || (!uri.getScheme().equals("http") && !uri.getScheme().equals("https"))) {
-                return "  ⚠ Geçersiz URL: http:// veya https:// ile başlamalıdır.";
-            }
-        } catch (IllegalArgumentException e) {
-            return "  ⚠ Geçersiz URL formatı: " + e.getMessage();
+        String urlError = validateStreamUrl(url);
+        if (urlError != null) {
+            return urlError;
         }
         var station = new RadioStation(id, name, country, genre, url, false);
         stationService.addCustomStation(station);
         return "  ✓ '%s' istasyonu eklendi! 'cal -i %s' ile dinleyebilirsiniz.".formatted(name, id);
+    }
+
+    @Command(name = "duzenle", description = "Özel istasyonu düzenler", group = "Yönetim")
+    public String editStation(
+            @Option(longName = "id", required = true, description = "İstasyon ID") String id,
+            @Option(longName = "isim", shortName = 'n', required = false, description = "Yeni istasyon adı") String name,
+            @Option(longName = "ulke", shortName = 'u', required = false, description = "Yeni ülke") String country,
+            @Option(longName = "tur", shortName = 't', required = false, description = "Yeni tür") String genre,
+            @Option(longName = "url", required = false, description = "Yeni akış URL'si") String url) {
+        if (stationService.findStation(id).isEmpty()) {
+            return "  ⚠ '%s' istasyonu bulunamadı.".formatted(id);
+        }
+        if (stationService.isBuiltInStation(id)) {
+            return "  ⚠ Dahili istasyonlar düzenlenemez. Sadece özel istasyonları düzenleyebilirsiniz.";
+        }
+        if (isBlank(name) && isBlank(country) && isBlank(genre) && isBlank(url)) {
+            return "  ⚠ En az bir alan verin. Örnek: duzenle --id %s --url https://...".formatted(id);
+        }
+        if (!isBlank(url)) {
+            String urlError = validateStreamUrl(url);
+            if (urlError != null) {
+                return urlError;
+            }
+        }
+
+        var updated = stationService.updateCustomStation(id, name, country, genre, url);
+        if (updated.isEmpty()) {
+            return "  ⚠ '%s' istasyonu düzenlenemedi.".formatted(id);
+        }
+        var station = updated.get();
+        return "  ✓ '%s' güncellendi.\n  ► Ülke: %s\n  ► Tür: %s\n  ► URL: %s"
+                .formatted(station.name(), station.country(), station.genre(), station.url());
+    }
+
+    @Command(name = "iceaktar", description = "M3U/PLS playlist dosyasından özel istasyon ekler", group = "Yönetim")
+    public String importPlaylist(
+            @Option(longName = "dosya", shortName = 'd', required = true, description = "M3U veya PLS dosya yolu") String file,
+            @Option(longName = "ulke", shortName = 'u', required = false, description = "İçe aktarılan istasyon ülkesi", defaultValue = "Özel") String country,
+            @Option(longName = "tur", shortName = 't', required = false, description = "İçe aktarılan istasyon türü", defaultValue = "Karma") String genre,
+            @Option(longName = "oneki", shortName = 'p', required = false, description = "Üretilecek ID ön eki", defaultValue = "import") String prefix) {
+        Path playlist = resolvePath(file);
+        if (!Files.exists(playlist)) {
+            return "  ⚠ Dosya bulunamadı: %s".formatted(playlist);
+        }
+        if (!Files.isRegularFile(playlist)) {
+            return "  ⚠ Playlist yolu normal bir dosya olmalıdır: %s".formatted(playlist);
+        }
+
+        try {
+            var result = stationService.importPlaylist(playlist, country, genre, prefix);
+            if (result.importedCount() == 0) {
+                return "  ⚠ İçe aktarılacak geçerli http/https akış bulunamadı. Atlanan: %d"
+                        .formatted(result.skippedCount());
+            }
+            navigationList = result.importedStations();
+            return "  ✓ Playlist içe aktarıldı: %d istasyon eklendi, %d atlandı.\n%s"
+                    .formatted(result.importedCount(), result.skippedCount(), formatStationTable(result.importedStations()));
+        } catch (IOException e) {
+            return "  ✗ Playlist okunamadı: " + e.getMessage();
+        }
     }
 
     @Command(name = "sil", description = "Özel istasyonu siler", group = "Yönetim")
@@ -565,5 +702,37 @@ public class RadioCommands {
         sb.append("  └────────┴─────────────────────────┴──────────────┴────────────────────┴──────────────────────┘\n");
         sb.append("  Toplam: %d istasyon | Çalmak için: cal -i <ID>\n".formatted(stations.size()));
         return sb.toString();
+    }
+
+    private String validateStreamUrl(String url) {
+        try {
+            var uri = URI.create(url);
+            if (uri.getScheme() == null
+                    || (!uri.getScheme().equalsIgnoreCase("http") && !uri.getScheme().equalsIgnoreCase("https"))) {
+                return "  ⚠ Geçersiz URL: http:// veya https:// ile başlamalıdır.";
+            }
+        } catch (IllegalArgumentException e) {
+            return "  ⚠ Geçersiz URL formatı: " + e.getMessage();
+        }
+        return null;
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private long formatMinutes(Duration duration) {
+        long seconds = Math.max(0, duration.toSeconds());
+        return Math.max(1, (seconds + 59) / 60);
+    }
+
+    private Path resolvePath(String file) {
+        if (file.startsWith("~/")) {
+            return Path.of(System.getProperty("user.home"), file.substring(2));
+        }
+        if (file.equals("~")) {
+            return Path.of(System.getProperty("user.home"));
+        }
+        return Path.of(file);
     }
 }

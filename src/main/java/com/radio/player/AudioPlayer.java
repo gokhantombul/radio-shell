@@ -2,18 +2,28 @@ package com.radio.player;
 
 import com.radio.config.RadioConfig;
 import com.radio.model.RadioStation;
+import com.radio.service.SettingsService;
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class AudioPlayer {
@@ -23,8 +33,11 @@ public class AudioPlayer {
 
     private static final int MAX_RECONNECT_ATTEMPTS = 3;
     private static final long[] RECONNECT_DELAYS_MS = {2_000, 4_000, 8_000};
+    private static final int MAX_HISTORY_SIZE = 50;
 
     private final RadioConfig config;
+    private final SettingsService settingsService;
+    private final ScheduledExecutorService sleepScheduler;
 
     private Process currentProcess;
     private RadioStation currentStation;
@@ -37,8 +50,27 @@ public class AudioPlayer {
     private Process recordProcess;
     private Path recordFile;
 
-    public AudioPlayer(RadioConfig config) {
+    private ScheduledFuture<?> sleepFuture;
+    private LocalDateTime sleepEndsAt;
+
+    private final Deque<SongHistoryEntry> songHistory = new ArrayDeque<>();
+
+    public record SongHistoryEntry(String stationId, String stationName, String title, LocalDateTime playedAt) {}
+
+    @Autowired
+    public AudioPlayer(RadioConfig config, SettingsService settingsService) {
         this.config = config;
+        this.settingsService = settingsService;
+        this.volume = settingsService != null ? settingsService.getVolume() : 100;
+        this.sleepScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "SleepTimer");
+            t.setDaemon(true);
+            return t;
+        });
+    }
+
+    public AudioPlayer(RadioConfig config) {
+        this(config, null);
     }
 
     public synchronized boolean play(RadioStation station) {
@@ -89,6 +121,7 @@ public class AudioPlayer {
                     return false;
                 }
             }
+            saveLastStation(station);
             return true;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -105,6 +138,7 @@ public class AudioPlayer {
 
     public synchronized void stop() {
         stopRequested = true;
+        cancelSleepTimer();
         killCurrentProcess();
     }
 
@@ -126,6 +160,9 @@ public class AudioPlayer {
 
     public synchronized void setVolume(int vol) {
         this.volume = Math.max(0, Math.min(100, vol));
+        if (settingsService != null) {
+            settingsService.setVolume(this.volume);
+        }
     }
 
     public synchronized boolean isVolumeChangePending() {
@@ -185,6 +222,49 @@ public class AudioPlayer {
         return recordFile;
     }
 
+    public synchronized void scheduleSleep(Duration duration) {
+        cancelSleepTimer();
+        sleepEndsAt = LocalDateTime.now().plus(duration);
+        sleepFuture = sleepScheduler.schedule(this::stopFromSleepTimer,
+                duration.toMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    public synchronized boolean cancelSleepTimer() {
+        boolean active = sleepFuture != null && !sleepFuture.isDone();
+        if (sleepFuture != null) {
+            sleepFuture.cancel(false);
+        }
+        sleepFuture = null;
+        sleepEndsAt = null;
+        return active;
+    }
+
+    public synchronized boolean isSleepTimerActive() {
+        return sleepFuture != null && !sleepFuture.isDone() && sleepEndsAt != null;
+    }
+
+    public synchronized LocalDateTime getSleepEndsAt() {
+        return sleepEndsAt;
+    }
+
+    public synchronized Duration getSleepRemaining() {
+        if (!isSleepTimerActive()) {
+            return Duration.ZERO;
+        }
+        Duration remaining = Duration.between(LocalDateTime.now(), sleepEndsAt);
+        return remaining.isNegative() ? Duration.ZERO : remaining;
+    }
+
+    public synchronized List<SongHistoryEntry> getSongHistory() {
+        return List.copyOf(songHistory);
+    }
+
+    @PreDestroy
+    public synchronized void shutdown() {
+        cancelSleepTimer();
+        sleepScheduler.shutdownNow();
+    }
+
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
@@ -234,7 +314,7 @@ public class AudioPlayer {
                                 String title = line.substring(start, end).trim();
                                 synchronized (this) {
                                     if (currentProcess == capturedProcess) {
-                                        this.currentSongTitle = title;
+                                        updateSongTitle(title);
                                     }
                                 }
                             }
@@ -309,6 +389,7 @@ public class AudioPlayer {
             currentProcess = newProcess;
             currentStation = station;
             currentSongTitle = null;
+            saveLastStation(station);
             startMetadataThread(newProcess);
             startWatchdog(station, newProcess, generation);
             log.info("Yeniden bağlandı ({}/{}): {}", generation, MAX_RECONNECT_ATTEMPTS, station.name());
@@ -316,6 +397,45 @@ public class AudioPlayer {
             log.error("Yeniden bağlanma hatası: {}", e.getMessage());
             currentStation = null;
             currentProcess = null;
+        }
+    }
+
+    private synchronized void stopFromSleepTimer() {
+        if (recordProcess != null && recordProcess.isAlive()) {
+            stopRecording();
+        }
+        stopRequested = true;
+        killCurrentProcess();
+        sleepFuture = null;
+        sleepEndsAt = null;
+    }
+
+    private void updateSongTitle(String title) {
+        if (title == null || title.isBlank()) return;
+        this.currentSongTitle = title;
+
+        if (currentStation == null) return;
+        var latest = songHistory.peekFirst();
+        if (latest != null
+                && latest.stationId().equals(currentStation.id())
+                && latest.title().equals(title)) {
+            return;
+        }
+
+        songHistory.addFirst(new SongHistoryEntry(
+                currentStation.id(),
+                currentStation.name(),
+                title,
+                LocalDateTime.now()));
+
+        while (songHistory.size() > MAX_HISTORY_SIZE) {
+            songHistory.removeLast();
+        }
+    }
+
+    private void saveLastStation(RadioStation station) {
+        if (settingsService != null && station != null) {
+            settingsService.setLastStationId(station.id());
         }
     }
 }

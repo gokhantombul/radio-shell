@@ -6,7 +6,7 @@
   ╔══════════════════════════════════════════════════════════════╗
   ║   ♬  ░░░ RADIO SHELL ░░░  ♬                                  ║
   ║   Terminal FM Radio Player - Türkiye & Dünya                 ║
-  ║   v1.0.0 | Spring Boot 4 + Java 25                           ║
+  ║   v1.0.0 | Spring Boot 4 + Java 21                           ║
   ╚══════════════════════════════════════════════════════════════╝
 ```
 
@@ -16,7 +16,7 @@
 
 | Araç | Sürüm | Kurulum |
 |------|-------|---------|
-| Java JDK | 25+ | `brew install openjdk` |
+| Java JDK | 21+ | `brew install openjdk` |
 | Apache Maven | 3.9+ | `brew install maven` |
 | ffmpeg | Herhangi | `brew install ffmpeg` |
 | Docker (isteğe bağlı) | 20+ | [docker.com](https://docker.com) |
@@ -95,7 +95,7 @@ docker run --rm -it \
 
 | Komut | Açıklama |
 |-------|----------|
-| `listele` | Tüm 45+ istasyonu tabloda listeler |
+| `listele` | Tüm 90+ istasyonu tabloda listeler |
 | `turkiye` | Sadece Türkiye istasyonlarını listeler |
 | `ulkeler` | Mevcut ülkeleri ve istasyon sayılarını gösterir |
 | `ulke -i <ülke>` | Belirli bir ülkenin istasyonları |
@@ -108,9 +108,23 @@ docker run --rm -it \
 | Komut | Açıklama |
 |-------|----------|
 | `cal -i <id>` | İstasyonu çalar (ID veya isim) |
+| `son` | Son çalınan istasyonu tekrar çalar |
 | `dur` | Çalmayı durdurur |
 | `durum` | Şu an çalan istasyonu gösterir |
 | `ses -s <0-100>` | Ses seviyesini ayarlar |
+| `sonraki` | Son listede bir sonraki istasyona geçer |
+| `onceki` | Son listede bir önceki istasyona geçer |
+| `karistir [-u ülke] [-t tür] [-f]` | Rastgele istasyon çalar |
+| `uyku -d <dakika>` | Süre sonunda oynatmayı durdurur |
+| `uyku iptal` | Uyku zamanlayıcısını iptal eder |
+| `gecmis [-n adet]` | Son görülen şarkı bilgilerini listeler |
+
+### Kayıt
+
+| Komut | Açıklama |
+|-------|----------|
+| `kaydet` | Çalan yayını MP3 olarak kaydetmeye başlar |
+| `kayitdur` | Aktif kaydı durdurur |
 
 ### Favoriler
 
@@ -123,8 +137,12 @@ docker run --rm -it \
 
 | Komut | Açıklama |
 |-------|----------|
+| `kontrol [-i <id>]` | Akış URL'lerini kontrol eder |
 | `ekle --id <id> --isim <isim> --ulke <ülke> --tur <tür> --url <url>` | Yeni istasyon ekler |
+| `duzenle --id <id> [--isim ...] [--ulke ...] [--tur ...] [--url ...]` | Özel istasyonu düzenler |
+| `iceaktar -d <dosya.m3u\|dosya.pls> [-u ülke] [-t tür] [-p önek]` | Playlist dosyasından özel istasyon ekler |
 | `sil --id <id>` | Özel istasyonu siler |
+| `tema [-i <tema>]` | Renk temasını listeler veya değiştirir |
 
 ### Diğer
 
@@ -153,11 +171,23 @@ radio> ulke -i UK
 # Ses seviyesini 70'e ayarla
 radio> ses -s 70
 
+# Son çalınan istasyonu yeniden başlat
+radio> son
+
+# 30 dakika sonra otomatik durdur
+radio> uyku -d 30
+
+# M3U playlist içe aktar
+radio> iceaktar -d ~/Downloads/radyolar.m3u -u Özel -t Karma
+
 # Power FM'i favorilere ekle
 radio> favori -i tr-powerfm
 
 # Özel istasyon ekle
 radio> ekle --id benim-radyom --isim "Benim Radyom" --ulke Türkiye --tur Pop --url http://stream.example.com/live
+
+# Özel istasyonu düzenle
+radio> duzenle --id benim-radyom --url https://stream.example.com/live
 
 # Durdur
 radio> dur
@@ -165,7 +195,7 @@ radio> dur
 
 ---
 
-## Dahili İstasyonlar (45 Adet)
+## Dahili İstasyonlar (90+ Adet)
 
 ### Türkiye
 | İstasyon | Tür | ID |
@@ -263,13 +293,15 @@ radio-shell/
     │   │   └── ShellConfig.java        # Temizleme (cleanup)
     │   ├── model/
     │   │   ├── RadioStation.java       # İstasyon veri modeli (record)
-    │   │   └── StationList.java        # JSON wrapper
+    │   │   ├── StationList.java        # JSON wrapper
+    │   │   └── UserSettings.java       # Kalıcı kullanıcı ayarları
     │   ├── player/AudioPlayer.java     # ffplay süreç yönetimi
     │   ├── service/StationService.java # İstasyon CRUD & arama
+    │   ├── service/SettingsService.java # Ses ve son istasyon ayarları
     │   └── shell/InteractiveShell.java # İnteraktif döngü
     └── resources/
         ├── application.properties      # Uygulama ayarları
-        └── stations.json               # 45 dahili istasyon
+        └── stations.json               # 90+ dahili istasyon
 ```
 
 ---
@@ -278,7 +310,7 @@ radio-shell/
 
 | Katman | Teknoloji |
 |--------|-----------|
-| Dil | Java 25 |
+| Dil | Java 21 |
 | Framework | Spring Boot 4.0.5 |
 | Shell | Spring Shell 4.0.1 |
 | Ses Oynatıcı | ffplay (ffmpeg) |
@@ -295,7 +327,10 @@ Favoriler ve özel istasyonlar `~/.radio-shell/` dizininde saklanır:
 ```
 ~/.radio-shell/
 ├── favorites.json        # Favori istasyon ID'leri
-└── custom-stations.json  # Kullanıcı tarafından eklenen istasyonlar
+├── custom-stations.json  # Kullanıcı tarafından eklenen istasyonlar
+├── settings.json         # Ses seviyesi ve son çalınan istasyon
+├── theme                 # Seçili renk teması
+└── recordings/           # MP3 kayıtları
 ```
 
 Docker kullanırken bu dizin volume olarak mount edilir, verileriniz container yeniden başlatmalarında korunur.
@@ -314,7 +349,7 @@ Docker kullanırken bu dizin volume olarak mount edilir, verileriniz container y
 
 | Tool | Version | Install |
 |------|---------|---------|
-| Java JDK | 25+ | `brew install openjdk` |
+| Java JDK | 21+ | `brew install openjdk` |
 | Apache Maven | 3.9+ | `brew install maven` |
 | ffmpeg | Any | `brew install ffmpeg` |
 | Docker (optional) | 20+ | [docker.com](https://docker.com) |
@@ -362,7 +397,7 @@ docker run --rm -it \
 
 | Command | Description |
 |---------|-------------|
-| `listele` | List all 45+ stations in a table |
+| `listele` | List all 90+ stations in a table |
 | `turkiye` | List Turkish stations only |
 | `ulkeler` | Show available countries and station counts |
 | `ulke -i <country>` | Stations from a specific country |
@@ -375,9 +410,23 @@ docker run --rm -it \
 | Command | Description |
 |---------|-------------|
 | `cal -i <id>` | Play a station (by ID or name) |
+| `son` | Play the last station again |
 | `dur` | Stop playback |
 | `durum` | Show currently playing station |
 | `ses -s <0-100>` | Set volume level |
+| `sonraki` | Move to the next station in the last list |
+| `onceki` | Move to the previous station in the last list |
+| `karistir [-u country] [-t genre] [-f]` | Play a random station |
+| `uyku -d <minutes>` | Stop playback after a delay |
+| `uyku iptal` | Cancel the sleep timer |
+| `gecmis [-n count]` | Show recent song metadata |
+
+### Recording
+
+| Command | Description |
+|---------|-------------|
+| `kaydet` | Start recording the current stream as MP3 |
+| `kayitdur` | Stop the active recording |
 
 ### Favorites
 
@@ -390,8 +439,12 @@ docker run --rm -it \
 
 | Command | Description |
 |---------|-------------|
+| `kontrol [-i <id>]` | Check stream URLs |
 | `ekle --id <id> --isim <name> --ulke <country> --tur <genre> --url <url>` | Add custom station |
+| `duzenle --id <id> [--isim ...] [--ulke ...] [--tur ...] [--url ...]` | Edit a custom station |
+| `iceaktar -d <file.m3u\|file.pls> [-u country] [-t genre] [-p prefix]` | Import custom stations from a playlist |
 | `sil --id <id>` | Remove a custom station |
+| `tema [-i <theme>]` | List or change color theme |
 
 ### Other
 
@@ -420,11 +473,23 @@ radio> ulke -i UK
 # Set volume to 70
 radio> ses -s 70
 
+# Play the last station again
+radio> son
+
+# Stop automatically after 30 minutes
+radio> uyku -d 30
+
+# Import an M3U playlist
+radio> iceaktar -d ~/Downloads/stations.m3u -u Custom -t Mixed
+
 # Add Power FM to favorites
 radio> favori -i tr-powerfm
 
 # Add a custom station
 radio> ekle --id my-station --isim "My Radio" --ulke Turkey --tur Pop --url http://stream.example.com/live
+
+# Edit a custom station
+radio> duzenle --id my-station --url https://stream.example.com/live
 
 # Stop playback
 radio> dur
@@ -478,13 +543,15 @@ radio-shell/
     │   │   └── ShellConfig.java        # Cleanup on shutdown
     │   ├── model/
     │   │   ├── RadioStation.java       # Station data model (record)
-    │   │   └── StationList.java        # JSON wrapper
+    │   │   ├── StationList.java        # JSON wrapper
+    │   │   └── UserSettings.java       # Persistent user settings
     │   ├── player/AudioPlayer.java     # ffplay process management
     │   ├── service/StationService.java # Station CRUD & search
+    │   ├── service/SettingsService.java # Volume and last station settings
     │   └── shell/InteractiveShell.java # Interactive shell loop
     └── resources/
         ├── application.properties      # Application settings
-        └── stations.json               # 45 built-in stations
+        └── stations.json               # 90+ built-in stations
 ```
 
 ---
@@ -493,7 +560,7 @@ radio-shell/
 
 | Layer | Technology |
 |-------|------------|
-| Language | Java 25 |
+| Language | Java 21 |
 | Framework | Spring Boot 4.0.5 |
 | Shell | Spring Shell 4.0.1 |
 | Audio Player | ffplay (ffmpeg) |
@@ -505,12 +572,15 @@ radio-shell/
 
 ## Persistent Data
 
-Favorites and custom stations are stored in `~/.radio-shell/`:
+Favorites, custom stations, settings, theme, and recordings are stored in `~/.radio-shell/`:
 
 ```
 ~/.radio-shell/
 ├── favorites.json        # Favorite station IDs
-└── custom-stations.json  # User-added stations
+├── custom-stations.json  # User-added stations
+├── settings.json         # Volume and last station
+├── theme                 # Selected color theme
+└── recordings/           # MP3 recordings
 ```
 
 When using Docker, this directory is mounted as a volume so your data persists across container restarts.
