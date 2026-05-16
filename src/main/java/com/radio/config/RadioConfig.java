@@ -15,6 +15,7 @@ public class RadioConfig {
     private String customStationsFile;
     private String settingsFile;
     private String recordingsDir;
+    private String statsFile;
 
     public PlayerConfig getPlayer() { return player; }
     public void setPlayer(PlayerConfig player) { this.player = player; }
@@ -28,6 +29,8 @@ public class RadioConfig {
     public void setSettingsFile(String f) { this.settingsFile = f; }
     public String getRecordingsDir() { return recordingsDir; }
     public void setRecordingsDir(String d) { this.recordingsDir = d; }
+    public String getStatsFile() { return statsFile; }
+    public void setStatsFile(String f) { this.statsFile = f; }
 
     public static class PlayerConfig {
         private String command = "ffplay";

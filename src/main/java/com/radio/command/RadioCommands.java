@@ -2,7 +2,10 @@ package com.radio.command;
 
 import com.radio.model.RadioStation;
 import com.radio.player.AudioPlayer;
+import com.radio.service.NotificationService;
+import com.radio.service.RadioBrowserService;
 import com.radio.service.SettingsService;
+import com.radio.service.StatisticsService;
 import com.radio.service.StationService;
 import com.radio.util.Theme;
 import com.radio.util.ThemeManager;
@@ -22,11 +25,13 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.Normalizer;
 import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -37,20 +42,32 @@ public class RadioCommands {
     private final AudioPlayer player;
     private final ThemeManager themeManager;
     private final SettingsService settingsService;
+    private final StatisticsService statisticsService;
+    private final NotificationService notificationService;
+    private final RadioBrowserService radioBrowserService;
 
-    // Navigation context: last displayed station list for sonraki/onceki commands
     private List<RadioStation> navigationList = List.of();
+    private List<RadioBrowserService.OnlineStation> lastOnlineSearch = List.of();
 
     @Autowired
-    public RadioCommands(StationService stationService, AudioPlayer player, ThemeManager themeManager, SettingsService settingsService) {
+    public RadioCommands(StationService stationService, AudioPlayer player, ThemeManager themeManager,
+                         SettingsService settingsService, StatisticsService statisticsService,
+                         NotificationService notificationService, RadioBrowserService radioBrowserService) {
         this.stationService = stationService;
         this.player = player;
         this.themeManager = themeManager;
         this.settingsService = settingsService;
+        this.statisticsService = statisticsService;
+        this.notificationService = notificationService;
+        this.radioBrowserService = radioBrowserService;
     }
 
     public RadioCommands(StationService stationService, AudioPlayer player, ThemeManager themeManager) {
-        this(stationService, player, themeManager, null);
+        this(stationService, player, themeManager, null, null, null, null);
+    }
+
+    public RadioCommands(StationService stationService, AudioPlayer player, ThemeManager themeManager, SettingsService settingsService) {
+        this(stationService, player, themeManager, settingsService, null, null, null);
     }
 
     @Command(name = "listele", description = "Tüm radyo istasyonlarını listeler", group = "Radio")
@@ -660,6 +677,120 @@ public class RadioCommands {
         }
     }
 
+    @Command(name = "istatistik", description = "Dinleme istatistiklerini gösterir", group = "İstatistik")
+    public String statistics(
+            @Option(longName = "adet", shortName = 'n', required = false, description = "Gösterilecek istasyon sayısı", defaultValue = "10") int limit) {
+        if (statisticsService == null) {
+            return "  ⚠ İstatistik servisi kullanılamıyor.";
+        }
+        var total = statisticsService.getTotalListenTime();
+        int sessions = statisticsService.getTotalSessions();
+        var top = statisticsService.getTopStations(limit);
+
+        var sb = new StringBuilder();
+        sb.append("\n").append(UIUtils.getBoxedString(new String[]{"DİNLEME İSTATİSTİKLERİ"}, 50)).append("\n");
+        sb.append("  Toplam: %s | Oturum: %d\n\n".formatted(formatListenDuration(total), sessions));
+
+        if (top.isEmpty()) {
+            sb.append("  ⚠ Henüz kayıtlı dinleme geçmişi yok. Bir istasyon çalın.\n");
+            return sb.toString();
+        }
+
+        sb.append("  ┌────┬─────────────────────────┬──────────────┬──────────────────┬──────────┐\n");
+        sb.append("  │ #  │ İstasyon                │ Ülke         │ Tür              │ Süre     │\n");
+        sb.append("  ├────┼─────────────────────────┼──────────────┼──────────────────┼──────────┤\n");
+
+        int idx = 1;
+        for (var stat : top) {
+            sb.append("  │ %s │ %s │ %s │ %s │ %s │\n".formatted(
+                    UIUtils.padRight(String.valueOf(idx++), 2),
+                    UIUtils.padRight(UIUtils.truncate(stat.stationName(), 23), 23),
+                    UIUtils.padRight(UIUtils.truncate(stat.country(), 12), 12),
+                    UIUtils.padRight(UIUtils.truncate(stat.genre(), 16), 16),
+                    UIUtils.padRight(formatListenDuration(Duration.ofSeconds(stat.totalSeconds())), 8)));
+        }
+        sb.append("  └────┴─────────────────────────┴──────────────┴──────────────────┴──────────┘\n");
+        return sb.toString();
+    }
+
+    @Command(name = "bildirim", description = "Masaüstü bildirimlerini açar/kapatır", group = "Yönetim")
+    public String notification() {
+        if (notificationService == null) {
+            return "  ⚠ Bildirim servisi kullanılamıyor.";
+        }
+        boolean newState = !notificationService.isEnabled();
+        notificationService.setEnabled(newState);
+        return newState
+                ? "  Bildirimler acildi. Sarki degisince masaustu bildirimi gosterilecek."
+                : "  Bildirimler kapatildi.";
+    }
+
+    @Command(name = "online-ara", description = "RadioBrowser.info üzerinden istasyon arar", group = "Online")
+    public String onlineSearch(
+            @Option(longName = "sorgu", shortName = 's', required = false, description = "İstasyon adı") String query,
+            @Option(longName = "ulke", shortName = 'u', required = false, description = "Ülke filtresi") String country,
+            @Option(longName = "tur", shortName = 't', required = false, description = "Tür/etiket filtresi") String tag,
+            @Option(longName = "adet", shortName = 'n', required = false, description = "Sonuç sayısı", defaultValue = "15") int limit) {
+
+        if (isBlank(query) && isBlank(country) && isBlank(tag)) {
+            return "  ⚠ En az bir kriter girin. Örnek: online-ara -s jazz   ya da   online-ara -t pop -u Turkey";
+        }
+
+        var results = radioBrowserService.search(query, country, tag, limit);
+        if (results.isEmpty()) {
+            return "  ⚠ Sonuç bulunamadı. Farklı arama kriterleri deneyin.";
+        }
+
+        lastOnlineSearch = results;
+
+        var sb = new StringBuilder();
+        sb.append("\n  Kaynak: RadioBrowser.info — %d istasyon bulundu:\n".formatted(results.size()));
+        sb.append("  ┌────┬─────────────────────────┬──────────────┬──────────────┬──────┬────────┐\n");
+        sb.append("  │ #  │ İstasyon                │ Ülke         │ Tür          │ Kbps │ Oylar  │\n");
+        sb.append("  ├────┼─────────────────────────┼──────────────┼──────────────┼──────┼────────┤\n");
+
+        for (int i = 0; i < results.size(); i++) {
+            var s = results.get(i);
+            sb.append("  │ %s │ %s │ %s │ %s │ %s │ %s │\n".formatted(
+                    UIUtils.padRight(String.valueOf(i + 1), 2),
+                    UIUtils.padRight(UIUtils.truncate(s.name(), 23), 23),
+                    UIUtils.padRight(UIUtils.truncate(s.countryDisplay(), 12), 12),
+                    UIUtils.padRight(UIUtils.truncate(s.genreDisplay(), 12), 12),
+                    UIUtils.padRight(s.bitrate() > 0 ? String.valueOf(s.bitrate()) : "-", 4),
+                    UIUtils.padRight(String.valueOf(s.votes()), 6)));
+        }
+        sb.append("  └────┴─────────────────────────┴──────────────┴──────────────┴──────┴────────┘\n");
+        sb.append("  Eklemek için: online-ekle --numara <#>\n");
+        return sb.toString();
+    }
+
+    @Command(name = "online-ekle", description = "Online arama sonucundan istasyon ekler", group = "Online")
+    public String onlineAdd(
+            @Option(longName = "numara", shortName = 'n', required = true, description = "online-ara sonucundaki sıra numarası") int number) {
+
+        if (lastOnlineSearch.isEmpty()) {
+            return "  ⚠ Önce 'online-ara' komutu ile arama yapın.";
+        }
+        if (number < 1 || number > lastOnlineSearch.size()) {
+            return "  ⚠ Geçersiz numara. 1-%d arasında bir değer girin.".formatted(lastOnlineSearch.size());
+        }
+
+        var s = lastOnlineSearch.get(number - 1);
+        if (isBlank(s.url())) {
+            return "  ⚠ Bu istasyonun geçerli bir akış URL'si yok.";
+        }
+
+        String id = onlineSlug(s.name());
+        if (stationService.findStation(id).isPresent()) {
+            id = id + "-2";
+        }
+        String genre = s.genreDisplay();
+        String country = s.countryDisplay();
+        var station = new RadioStation(id, s.name(), country, genre, s.url(), false);
+        stationService.addCustomStation(station);
+        return "  ✓ '%s' eklendi. Çalmak için: cal -i %s".formatted(s.name(), id);
+    }
+
     @Command(name = "sil", description = "Özel istasyonu siler", group = "Yönetim")
     public String removeStation(
             @Option(longName = "id", required = true, description = "İstasyon ID") String id) {
@@ -761,5 +892,25 @@ public class RadioCommands {
             return Path.of(System.getProperty("user.home"));
         }
         return Path.of(file);
+    }
+
+    private String formatListenDuration(Duration d) {
+        long h = d.toHours();
+        long m = d.toMinutesPart();
+        long s = d.toSecondsPart();
+        if (h > 0) return "%dsa %02ddk".formatted(h, m);
+        if (m > 0) return "%ddk %02dsn".formatted(m, s);
+        return "%dsn".formatted(s);
+    }
+
+    private String onlineSlug(String name) {
+        if (name == null || name.isBlank()) return "online-station";
+        String normalized = name.toLowerCase(Locale.forLanguageTag("tr"))
+                .replace("ı", "i").replace("ğ", "g").replace("ü", "u")
+                .replace("ş", "s").replace("ö", "o").replace("ç", "c");
+        normalized = Normalizer.normalize(normalized, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "");
+        String slug = normalized.replaceAll("[^a-z0-9]+", "-").replaceAll("(^-+|-+$)", "");
+        return slug.isBlank() ? "online-station" : slug;
     }
 }

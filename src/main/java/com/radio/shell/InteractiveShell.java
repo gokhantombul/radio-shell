@@ -467,6 +467,17 @@ public class InteractiveShell implements ApplicationRunner {
         out.println("    favori -i <id>       - Favorilere ekle/çıkar");
         out.println("    favoriler            - Favori listesi");
         out.println();
+        out.println("  " + t.bold() + "İSTATİSTİK" + t.reset());
+        out.println("    istatistik           - En çok dinlenen istasyonlar ve toplam süre");
+        out.println("    istatistik -n <adet> - Gösterilecek istasyon sayısını belirler");
+        out.println();
+        out.println("  " + t.bold() + "ONLINE İSTASYONLAR" + t.reset());
+        out.println("    online-ara -s <isim> - RadioBrowser.info'dan istasyon arar");
+        out.println("      -u <ülke>          - Ülke filtresi (örn: Turkey)");
+        out.println("      -t <tür>           - Tür filtresi (örn: pop, jazz)");
+        out.println("      -n <adet>          - Sonuç sayısı (varsayılan: 15)");
+        out.println("    online-ekle -n <#>   - Arama sonucundan istasyonu listeye ekler");
+        out.println();
         out.println("  " + t.bold() + "YÖNETİM" + t.reset());
         out.println("    kontrol              - Tüm istasyonların URL'lerini kontrol eder");
         out.println("    kontrol -i <id>      - Belirli istasyonu kontrol eder");
@@ -475,6 +486,7 @@ public class InteractiveShell implements ApplicationRunner {
         out.println("    iceaktar -d <dosya>  - M3U/PLS playlist içe aktarır");
         out.println("    sil --id <id>        - Özel istasyonu siler");
         out.println("    tema                 - Renk temasını değiştirir");
+        out.println("    bildirim             - Masaüstü bildirimlerini açar/kapatır");
         out.println();
         out.println("  " + t.bold() + "DİĞER" + t.reset());
         out.println("    help / ?             - Bu yardım menüsü");

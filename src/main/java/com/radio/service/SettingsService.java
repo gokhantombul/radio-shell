@@ -60,6 +60,15 @@ public class SettingsService {
         save();
     }
 
+    public synchronized boolean isNotificationsEnabled() {
+        return settings.notificationsEnabled() == null || settings.notificationsEnabled();
+    }
+
+    public synchronized void setNotificationsEnabled(boolean enabled) {
+        settings = settings.withNotificationsEnabled(enabled);
+        save();
+    }
+
     private void load() {
         String path = config.getSettingsFile();
         if (path == null) return;

@@ -68,12 +68,19 @@ public class AudioPlayer {
     private final ScheduledExecutorService streamInfoScheduler;
     private final HttpClient streamInfoClient;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.radio.service.StatisticsService statisticsService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.radio.service.NotificationService notificationService;
+
     private Process currentProcess;
     private RadioStation currentStation;
     private String currentSongTitle;
     private SongInfo currentSongInfo;
     private StreamInfo currentStreamInfo;
     private LocalDateTime currentPlaybackStartedAt;
+    private LocalDateTime sessionStartedAt;
     private ScheduledFuture<?> streamInfoFuture;
     private int streamInfoAttempts;
     private long playbackGeneration;
@@ -166,6 +173,7 @@ public class AudioPlayer {
             currentSongInfo = null;
             currentStreamInfo = null;
             currentPlaybackStartedAt = LocalDateTime.now();
+            sessionStartedAt = currentPlaybackStartedAt;
             long streamInfoGeneration = ++playbackGeneration;
 
             final Process captured = currentProcess;
@@ -414,6 +422,7 @@ public class AudioPlayer {
     }
 
     private void killCurrentProcess() {
+        recordAndClearSession();
         if (currentProcess != null && currentProcess.isAlive()) {
             currentProcess.destroyForcibly();
             try {
@@ -429,6 +438,14 @@ public class AudioPlayer {
         currentStreamInfo = null;
         currentPlaybackStartedAt = null;
         cancelStreamInfoProbe();
+    }
+
+    private void recordAndClearSession() {
+        if (currentStation != null && sessionStartedAt != null && statisticsService != null) {
+            var duration = java.time.Duration.between(sessionStartedAt, LocalDateTime.now());
+            statisticsService.recordSession(currentStation, duration);
+        }
+        sessionStartedAt = null;
     }
 
     private void startMetadataThread(Process capturedProcess) {
@@ -487,6 +504,7 @@ public class AudioPlayer {
                 log.error("Yeniden bağlanma denemesi tükendi ({}): {}", MAX_RECONNECT_ATTEMPTS, station.name());
                 synchronized (AudioPlayer.this) {
                     if (!stopRequested && currentProcess == monitoredProcess) {
+                        recordAndClearSession();
                         currentStation = null;
                         currentProcess = null;
                         currentStreamInfo = null;
@@ -563,11 +581,11 @@ public class AudioPlayer {
 
         if (currentStation == null) return;
         var latest = songHistory.peekFirst();
-        if (latest != null
-                && latest.stationId().equals(currentStation.id())
-                && latest.title().equals(songInfo.rawTitle())) {
-            return;
-        }
+        boolean isNewSong = latest == null
+                || !latest.stationId().equals(currentStation.id())
+                || !latest.title().equals(songInfo.rawTitle());
+
+        if (!isNewSong) return;
 
         songHistory.addFirst(new SongHistoryEntry(
                 currentStation.id(),
@@ -577,6 +595,10 @@ public class AudioPlayer {
 
         while (songHistory.size() > MAX_HISTORY_SIZE) {
             songHistory.removeLast();
+        }
+
+        if (notificationService != null) {
+            notificationService.notify(currentStation.name(), songInfo.displayTitle());
         }
     }
 
