@@ -420,7 +420,7 @@ public class InteractiveShell implements ApplicationRunner {
         String[] lines = {
             "♬  ░░░ RADIO SHELL ░░░  ♬",
             "Terminal FM Radio Player - Türkiye & Dünya",
-            "v1.0.0 | Spring Boot 4 + Java 21"
+            "v2.0.0 | Spring Boot 4 + Java 21"
         };
         UIUtils.printBoxed(out, lines, 60, t.primary() + t.bold());
         out.println();
