@@ -685,11 +685,23 @@ public class RadioCommands {
         }
         var total = statisticsService.getTotalListenTime();
         int sessions = statisticsService.getTotalSessions();
-        var top = statisticsService.getTopStations(limit);
+        var top = new ArrayList<>(statisticsService.getTopStations(limit));
+
+        var live = player.getLiveSession();
+        if (live != null) {
+            total = total.plus(live.duration());
+            // Live session counts as an in-progress session in the totals.
+            sessions += 1;
+            mergeLiveIntoTop(top, live, limit);
+        }
 
         var sb = new StringBuilder();
         sb.append("\n").append(UIUtils.getBoxedString(new String[]{"DİNLEME İSTATİSTİKLERİ"}, 50)).append("\n");
-        sb.append("  Toplam: %s | Oturum: %d\n\n".formatted(formatListenDuration(total), sessions));
+        sb.append("  Toplam: %s | Oturum: %d\n".formatted(formatListenDuration(total), sessions));
+        if (live != null) {
+            sb.append("  ● Canlı: %s (%s)\n".formatted(live.station().name(), formatListenDuration(live.duration())));
+        }
+        sb.append("\n");
 
         if (top.isEmpty()) {
             sb.append("  ⚠ Henüz kayıtlı dinleme geçmişi yok. Bir istasyon çalın.\n");
@@ -701,8 +713,12 @@ public class RadioCommands {
         sb.append("  ├────┼─────────────────────────┼──────────────┼──────────────────┼──────────┤\n");
 
         int idx = 1;
+        String liveId = live != null ? live.station().id() : null;
         for (var stat : top) {
-            sb.append("  │ %s │ %s │ %s │ %s │ %s │\n".formatted(
+            boolean isLive = liveId != null && liveId.equals(stat.stationId());
+            String marker = isLive ? "●" : " ";
+            sb.append("  │%s%s │ %s │ %s │ %s │ %s │\n".formatted(
+                    marker,
                     UIUtils.padRight(String.valueOf(idx++), 2),
                     UIUtils.padRight(UIUtils.truncate(stat.stationName(), 23), 23),
                     UIUtils.padRight(UIUtils.truncate(stat.country(), 12), 12),
@@ -711,6 +727,35 @@ public class RadioCommands {
         }
         sb.append("  └────┴─────────────────────────┴──────────────┴──────────────────┴──────────┘\n");
         return sb.toString();
+    }
+
+    private void mergeLiveIntoTop(List<StatisticsService.StationStat> top, AudioPlayer.LiveSession live, int limit) {
+        long liveSeconds = live.duration().toSeconds();
+        var station = live.station();
+        StatisticsService.StationStat existing = null;
+        int existingIdx = -1;
+        for (int i = 0; i < top.size(); i++) {
+            if (top.get(i).stationId().equals(station.id())) {
+                existing = top.get(i);
+                existingIdx = i;
+                break;
+            }
+        }
+        StatisticsService.StationStat merged = existing != null
+                ? new StatisticsService.StationStat(existing.stationId(), existing.stationName(),
+                        existing.country(), existing.genre(),
+                        existing.totalSeconds() + liveSeconds, existing.sessionCount() + 1)
+                : new StatisticsService.StationStat(station.id(), station.name(),
+                        station.country(), station.genre(), liveSeconds, 1);
+        if (existingIdx >= 0) {
+            top.set(existingIdx, merged);
+        } else {
+            top.add(merged);
+        }
+        top.sort((a, b) -> Long.compare(b.totalSeconds(), a.totalSeconds()));
+        while (top.size() > limit) {
+            top.remove(top.size() - 1);
+        }
     }
 
     @Command(name = "bildirim", description = "Masaüstü bildirimlerini açar/kapatır", group = "Yönetim")
@@ -780,9 +825,11 @@ public class RadioCommands {
             return "  ⚠ Bu istasyonun geçerli bir akış URL'si yok.";
         }
 
-        String id = onlineSlug(s.name());
-        if (stationService.findStation(id).isPresent()) {
-            id = id + "-2";
+        String baseId = onlineSlug(s.name());
+        String id = baseId;
+        int suffix = 2;
+        while (stationService.findStation(id).isPresent()) {
+            id = baseId + "-" + suffix++;
         }
         String genre = s.genreDisplay();
         String country = s.countryDisplay();

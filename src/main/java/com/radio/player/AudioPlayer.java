@@ -273,6 +273,14 @@ public class AudioPlayer {
         return elapsed.isNegative() ? Duration.ZERO : elapsed;
     }
 
+    public record LiveSession(RadioStation station, Duration duration) {}
+
+    public synchronized LiveSession getLiveSession() {
+        if (currentStation == null || sessionStartedAt == null) return null;
+        Duration d = Duration.between(sessionStartedAt, LocalDateTime.now());
+        return d.isNegative() ? null : new LiveSession(currentStation, d);
+    }
+
     public synchronized int getVolume() {
         return volume;
     }
