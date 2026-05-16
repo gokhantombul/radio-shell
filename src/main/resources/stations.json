@@ -141,7 +141,7 @@
       "name": "Radyo D",
       "country": "Türkiye",
       "genre": "Pop",
-      "url": "https://moondigitaledge2.radyotvonline.net/radyod/playlist.m3u8",
+      "url": "https://radyo.duhnet.tv/radyod",
       "favorite": false
     },
     {
@@ -277,7 +277,7 @@
       "name": "Virgin Radio TR",
       "country": "Türkiye",
       "genre": "Pop/Rock",
-      "url": "http://28033.live.streamtheworld.com/VIRGIN_RADIOAAC_SC",
+      "url": "https://playerservices.streamtheworld.com/api/livestream-redirect/VIRGIN_RADIOAAC_SC",
       "favorite": false
     },
     {
@@ -325,7 +325,7 @@
       "name": "Radyo Ekin",
       "country": "Türkiye",
       "genre": "Türk Halk Müziği",
-      "url": "https://yayin.turkhosted.com/6006/stream",
+      "url": "http://yayin.turkhosted.com:6006/",
       "favorite": false
     },
     {
@@ -349,7 +349,7 @@
       "name": "Radyo Munzur",
       "country": "Türkiye",
       "genre": "Türk Halk Müziği",
-      "url": "http://yayin1.yayindakiler.com:3002/;stream.nsv",
+      "url": "http://yayin1.yayindakiler.com:3002/",
       "favorite": false
     },
     {
@@ -397,7 +397,7 @@
       "name": "BBC Radio 2",
       "country": "İngiltere",
       "genre": "Adult Contemporary",
-      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_two.m3u8",
+      "url": "http://as-hls-ww-live.akamaized.net/pool_74208725/live/ww/bbc_radio_two/bbc_radio_two.isml/bbc_radio_two-audio%3d128000.norewind.m3u8",
       "favorite": false
     },
     {
@@ -405,7 +405,7 @@
       "name": "BBC Radio 3",
       "country": "İngiltere",
       "genre": "Classical",
-      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_three.m3u8",
+      "url": "http://as-hls-ww-live.akamaized.net/pool_23461179/live/ww/bbc_radio_three/bbc_radio_three.isml/bbc_radio_three-audio%3d128000.norewind.m3u8",
       "favorite": false
     },
     {
@@ -413,7 +413,7 @@
       "name": "BBC Radio 4",
       "country": "İngiltere",
       "genre": "Talk/News",
-      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_fourfm.m3u8",
+      "url": "http://as-hls-ww-live.akamaized.net/pool_55057080/live/ww/bbc_radio_fourfm/bbc_radio_fourfm.isml/bbc_radio_fourfm-audio%3d128000.norewind.m3u8",
       "favorite": false
     },
     {
@@ -421,7 +421,7 @@
       "name": "BBC 6 Music",
       "country": "İngiltere",
       "genre": "Alternative",
-      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_6music.m3u8",
+      "url": "http://as-hls-ww-live.akamaized.net/pool_81827798/live/ww/bbc_6music/bbc_6music.isml/bbc_6music-audio%3d128000.norewind.m3u8",
       "favorite": false
     },
     {
@@ -429,7 +429,7 @@
       "name": "BBC 1Xtra",
       "country": "İngiltere",
       "genre": "Hip Hop/R&B",
-      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_1xtra.m3u8",
+      "url": "http://as-hls-ww-live.akamaized.net/pool_92079267/live/ww/bbc_1xtra/bbc_1xtra.isml/bbc_1xtra-audio%3d128000.norewind.m3u8",
       "favorite": false
     },
     {
@@ -445,7 +445,7 @@
       "name": "KEXP 90.3 FM",
       "country": "ABD",
       "genre": "Indie/Alternative",
-      "url": "https://kexp-mp3-128.streamguys1.com/kexp128.mp3",
+      "url": "https://kexp.streamguys1.com/kexp160.aac",
       "favorite": false
     },
     {
@@ -453,7 +453,7 @@
       "name": "WFMU",
       "country": "ABD",
       "genre": "Freeform",
-      "url": "http://stream0.wfmu.org/freeform-128k",
+      "url": "https://stream0.wfmu.org/freeform-128k.mp3",
       "favorite": false
     },
     {
@@ -573,7 +573,7 @@
       "name": "RAI Radio 2",
       "country": "İtalya",
       "genre": "Pop/Entertainment",
-      "url": "http://icestreaming.rai.it/2.mp3",
+      "url": "http://icecdn-19d24861e90342cc8decb03c24c8a419.msvdn.net/icecastRelay/S35942484/yp5F67151K92/icecast",
       "favorite": false
     },
     {
@@ -629,7 +629,7 @@
       "name": "Rock Antenne",
       "country": "Almanya",
       "genre": "Rock/Indie",
-      "url": "https://mp3channels.webradio.antenne.de/rockantenne",
+      "url": "http://mp3channels.webradio.rockantenne.de/classic-perlen",
       "favorite": false
     },
     {
@@ -661,7 +661,7 @@
       "name": "Hard Rock Heaven",
       "country": "ABD",
       "genre": "Rock/Indie",
-      "url": "http://hydra.cdnstream.com/1521_128",
+      "url": "http://andromeda.shoutca.st:9254/stream",
       "favorite": false
     },
     {
@@ -669,7 +669,7 @@
       "name": "Arrow Classic Rock",
       "country": "Hollanda",
       "genre": "Rock/Indie",
-      "url": "https://stream.player.arrow.nl/arrowcr",
+      "url": "http://stream.gal.io/arrow",
       "favorite": false
     },
     {
@@ -677,7 +677,7 @@
       "name": "Virgin Radio UK",
       "country": "İngiltere",
       "genre": "Rock/Indie",
-      "url": "https://radio.virginradio.co.uk/stream",
+      "url": "http://provisioning.streamtheworld.com/pls/VIRGIN_RADIO.pls",
       "favorite": false
     },
     {
@@ -685,7 +685,7 @@
       "name": "The Sound",
       "country": "Yeni Zelanda",
       "genre": "Rock/Indie",
-      "url": "https://mediaworks.streamguys1.com/sound_net/playlist.m3u8",
+      "url": "https://digitalstreams.mediaworks.nz/sound_net/playlist.m3u8",
       "favorite": false
     },
     {
@@ -709,7 +709,7 @@
       "name": "Radyo Fenomen Pop",
       "country": "Türkiye",
       "genre": "Pop/Türkçe",
-      "url": "https://listen.radyofenomen.com/fenomen/128/icecast.audio",
+      "url": "https://live.radyofenomen.com/fenomenpop/256/chunks.m3u8",
       "favorite": false
     },
     {
@@ -725,7 +725,7 @@
       "name": "BBC World Service",
       "country": "World",
       "genre": "News/Talk",
-      "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_world_service",
+      "url": "http://as-hls-ww.live.cf.md.bbci.co.uk/pool_07364996/live/ww/bbc_world_service_news_internet/bbc_world_service_news_internet.isml/bbc_world_service_news_internet-audio=320000.norewind.m3u8",
       "favorite": false
     }
   ]
