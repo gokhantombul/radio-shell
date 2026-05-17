@@ -437,7 +437,8 @@ public class RadioCommands {
 
     @Command(name = "gecmis", description = "Son görülen şarkı bilgilerini listeler", group = "Oynatma")
     public String songHistory(
-            @Option(longName = "adet", shortName = 'n', required = false, description = "Gösterilecek kayıt sayısı", defaultValue = "10") int limit) {
+            @Option(longName = "adet", shortName = 'n', required = false, description = "Gösterilecek kayıt sayısı", defaultValue = "10") Integer limit) {
+        limit = valueOrDefault(limit, 10);
         if (limit <= 0) {
             return "  ⚠ Kayıt sayısı 1 veya daha büyük olmalıdır.";
         }
@@ -679,9 +680,13 @@ public class RadioCommands {
 
     @Command(name = "istatistik", description = "Dinleme istatistiklerini gösterir", group = "İstatistik")
     public String statistics(
-            @Option(longName = "adet", shortName = 'n', required = false, description = "Gösterilecek istasyon sayısı", defaultValue = "10") int limit) {
+            @Option(longName = "adet", shortName = 'n', required = false, description = "Gösterilecek istasyon sayısı", defaultValue = "10") Integer limit) {
         if (statisticsService == null) {
             return "  ⚠ İstatistik servisi kullanılamıyor.";
+        }
+        limit = valueOrDefault(limit, 10);
+        if (limit <= 0) {
+            return "  ⚠ Listelemek istediğiniz istasyon adedi 1 veya daha büyük olmalıdır. Örnek: istatistik -n 10";
         }
         var total = statisticsService.getTotalListenTime();
         int sessions = statisticsService.getTotalSessions();
@@ -735,11 +740,14 @@ public class RadioCommands {
         StatisticsService.StationStat existing = null;
         int existingIdx = -1;
         for (int i = 0; i < top.size(); i++) {
-            if (top.get(i).stationId().equals(station.id())) {
+            if (station.id().equals(top.get(i).stationId())) {
                 existing = top.get(i);
                 existingIdx = i;
                 break;
             }
+        }
+        if (existing == null && statisticsService != null) {
+            existing = statisticsService.getStationStat(station.id()).orElse(null);
         }
         StatisticsService.StationStat merged = existing != null
                 ? new StatisticsService.StationStat(existing.stationId(), existing.stationName(),
@@ -766,8 +774,8 @@ public class RadioCommands {
         boolean newState = !notificationService.isEnabled();
         notificationService.setEnabled(newState);
         return newState
-                ? "  Bildirimler acildi. Sarki degisince masaustu bildirimi gosterilecek."
-                : "  Bildirimler kapatildi.";
+                ? "  Bildirimler açıldı. Şarkı değişince masaüstü bildirimi gösterilecek."
+                : "  Bildirimler kapatıldı.";
     }
 
     @Command(name = "online-ara", description = "RadioBrowser.info üzerinden istasyon arar", group = "Online")
@@ -775,12 +783,20 @@ public class RadioCommands {
             @Option(longName = "sorgu", shortName = 's', required = false, description = "İstasyon adı") String query,
             @Option(longName = "ulke", shortName = 'u', required = false, description = "Ülke filtresi") String country,
             @Option(longName = "tur", shortName = 't', required = false, description = "Tür/etiket filtresi") String tag,
-            @Option(longName = "adet", shortName = 'n', required = false, description = "Sonuç sayısı", defaultValue = "15") int limit) {
+            @Option(longName = "adet", shortName = 'n', required = false, description = "Sonuç sayısı", defaultValue = "15") Integer limit) {
 
+        if (radioBrowserService == null) {
+            return "  ⚠ Online arama servisi kullanılamıyor.";
+        }
+        limit = valueOrDefault(limit, 15);
+        if (limit <= 0 || limit > 50) {
+            return "  ⚠ Sonuç sayısı 1-50 arasında olmalıdır.";
+        }
         if (isBlank(query) && isBlank(country) && isBlank(tag)) {
             return "  ⚠ En az bir kriter girin. Örnek: online-ara -s jazz   ya da   online-ara -t pop -u Turkey";
         }
 
+        lastOnlineSearch = List.of();
         var results = radioBrowserService.search(query, country, tag, limit);
         if (results.isEmpty()) {
             return "  ⚠ Sonuç bulunamadı. Farklı arama kriterleri deneyin.";
@@ -924,6 +940,10 @@ public class RadioCommands {
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    private int valueOrDefault(Integer value, int defaultValue) {
+        return value == null ? defaultValue : value;
     }
 
     private long formatMinutes(Duration duration) {

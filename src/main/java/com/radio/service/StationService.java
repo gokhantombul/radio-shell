@@ -94,7 +94,10 @@ public class StationService {
             String path = config.getFavoritesFile();
             if (path == null) return;
             Path p = Path.of(path);
-            Files.createDirectories(p.getParent());
+            Path parent = p.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
             mapper.writeValue(p.toFile(), favoriteIds.toArray(String[]::new));
         } catch (IOException e) {
             log.error("Favoriler kaydedilemedi: {}", e.getMessage());
@@ -226,7 +229,10 @@ public class StationService {
             String path = config.getCustomStationsFile();
             if (path == null) return;
             Path p = Path.of(path);
-            Files.createDirectories(p.getParent());
+            Path parent = p.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
             var customStations = stationMap.values().stream()
                     .filter(s -> !builtInIds.contains(s.id()))
                     .toList();

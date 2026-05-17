@@ -3,19 +3,32 @@ package com.radio.command;
 import com.radio.config.RadioConfig;
 import com.radio.model.RadioStation;
 import com.radio.player.AudioPlayer;
+import com.radio.service.RadioBrowserService;
 import com.radio.service.SettingsService;
+import com.radio.service.StatisticsService;
 import com.radio.service.StationService;
 import com.radio.util.ThemeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.springframework.context.support.StaticApplicationContext;
+import org.springframework.shell.core.command.Command;
+import org.springframework.shell.core.command.CommandContext;
+import org.springframework.shell.core.command.CommandExecutor;
+import org.springframework.shell.core.command.CommandRegistry;
+import org.springframework.shell.core.command.DefaultCommandParser;
+import org.springframework.shell.core.command.annotation.support.CommandFactoryBean;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -310,6 +323,117 @@ class RadioCommandsTest {
     }
 
     @Test
+    void statistics_withNonPositiveLimitReturnsWarning() {
+        var statistics = new StatisticsService(config);
+        statistics.init();
+        commands = new RadioCommands(stationService, player, new ThemeManager(), null, statistics, null, null);
+
+        String result = commands.statistics(0);
+
+        assertThat(result).contains("⚠");
+        assertThat(result).contains("1 veya daha büyük");
+    }
+
+    @Test
+    void statistics_mergesLiveSessionWithPersistedStatOutsideLimitedTop() {
+        config.setStatsFile(tempDir.resolve("stats.json").toString());
+        var statistics = new StatisticsService(config);
+        statistics.init();
+        var first = stationService.getAllStations().get(0);
+        var second = stationService.getAllStations().get(1);
+        statistics.recordSession(first, Duration.ofMinutes(40));
+        statistics.recordSession(second, Duration.ofMinutes(60));
+        player.liveSession = new AudioPlayer.LiveSession(first, Duration.ofMinutes(30));
+        commands = new RadioCommands(stationService, player, new ThemeManager(), null, statistics, null, null);
+
+        String result = commands.statistics(1);
+
+        assertThat(result).contains(first.name());
+        assertThat(result).contains("1sa 10dk");
+        assertThat(result).doesNotContain(second.name());
+    }
+
+    @Test
+    void statistics_shellCommandWithoutLimitUsesDefaultCount() throws Exception {
+        config.setStatsFile(tempDir.resolve("stats.json").toString());
+        var statistics = new StatisticsService(config);
+        statistics.init();
+        var station = stationService.getAllStations().getFirst();
+        statistics.recordSession(station, Duration.ofMinutes(2));
+        commands = new RadioCommands(stationService, player, new ThemeManager(), null, statistics, null, null);
+
+        String result = executeShellCommand("istatistik", "statistics", Integer.class);
+
+        assertThat(result).contains("DİNLEME İSTATİSTİKLERİ");
+        assertThat(result).contains(station.name());
+        assertThat(result).doesNotContain("Listelemek istediğiniz");
+    }
+
+    @Test
+    void statistics_shellCommandWithLimitShowsStats() throws Exception {
+        config.setStatsFile(tempDir.resolve("stats.json").toString());
+        var statistics = new StatisticsService(config);
+        statistics.init();
+        var station = stationService.getAllStations().getFirst();
+        statistics.recordSession(station, Duration.ofMinutes(2));
+        commands = new RadioCommands(stationService, player, new ThemeManager(), null, statistics, null, null);
+
+        String result = executeShellCommand("istatistik -n 10", "statistics", Integer.class);
+
+        assertThat(result).contains("DİNLEME İSTATİSTİKLERİ");
+        assertThat(result).contains(station.name());
+    }
+
+    @Test
+    void onlineSearch_withoutServiceReturnsWarning() {
+        String result = commands.onlineSearch("jazz", null, null, 10);
+
+        assertThat(result).contains("Online arama servisi kullanılamıyor");
+    }
+
+    @Test
+    void onlineSearch_withInvalidLimitReturnsWarningBeforeNetworkCall() {
+        commands = new RadioCommands(stationService, player, new ThemeManager(),
+                null, null, null, new RadioBrowserService());
+
+        String result = commands.onlineSearch("jazz", null, null, 0);
+
+        assertThat(result).contains("1-50");
+    }
+
+    @Test
+    void onlineSearch_shellCommandWithoutLimitUsesDefaultCount() throws Exception {
+        var radioBrowser = new FakeRadioBrowserService();
+        radioBrowser.results = List.of(new RadioBrowserService.OnlineStation(
+                "uuid-1", "Online Jazz", "Turkey", "jazz", "https://example.com/live", 128, 10, "MP3"));
+        commands = new RadioCommands(stationService, player, new ThemeManager(),
+                null, null, null, radioBrowser);
+
+        String result = executeShellCommand("online-ara -s jazz", "onlineSearch",
+                String.class, String.class, String.class, Integer.class);
+
+        assertThat(result).contains("Online Jazz");
+        assertThat(radioBrowser.lastLimit).isEqualTo(15);
+    }
+
+    @Test
+    void onlineSearch_emptyResultClearsPreviousSelection() {
+        var radioBrowser = new FakeRadioBrowserService();
+        radioBrowser.results = List.of(new RadioBrowserService.OnlineStation(
+                "uuid-1", "Online Jazz", "Turkey", "jazz", "https://example.com/live", 128, 10, "MP3"));
+        commands = new RadioCommands(stationService, player, new ThemeManager(),
+                null, null, null, radioBrowser);
+
+        assertThat(commands.onlineSearch("jazz", null, null, 10)).contains("Online Jazz");
+        assertThat(commands.onlineAdd(1)).contains("eklendi");
+
+        radioBrowser.results = List.of();
+
+        assertThat(commands.onlineSearch("no-match", null, null, 10)).contains("Sonuç bulunamadı");
+        assertThat(commands.onlineAdd(1)).contains("Önce 'online-ara'");
+    }
+
+    @Test
     void sleepTimer_validMinutesSchedulesTimer() {
         String result = commands.sleepTimer(15);
 
@@ -335,6 +459,44 @@ class RadioCommandsTest {
         assertThat(result).contains(station.name());
     }
 
+    @Test
+    void songHistory_shellCommandWithoutLimitUsesDefaultCount() throws Exception {
+        var station = stationService.getAllStations().getFirst();
+        player.history = List.of(new AudioPlayer.SongHistoryEntry(
+                station.id(), station.name(), "Artist - Song", LocalDateTime.of(2026, 5, 15, 12, 0)));
+
+        String result = executeShellCommand("gecmis", "songHistory", Integer.class);
+
+        assertThat(result).contains("Artist - Song");
+        assertThat(result).doesNotContain("Kayıt sayısı");
+    }
+
+    private String executeShellCommand(String input, String methodName, Class<?>... parameterTypes) throws Exception {
+        Method method = RadioCommands.class.getMethod(methodName, parameterTypes);
+        var factoryBean = new CommandFactoryBean(method);
+        var applicationContext = new StaticApplicationContext();
+        applicationContext.getDefaultListableBeanFactory().registerSingleton("radioCommands", commands);
+        factoryBean.setApplicationContext(applicationContext);
+        Command command = factoryBean.getObject();
+        var registry = new CommandRegistry(Set.of(command));
+        var parser = new DefaultCommandParser(registry);
+        var output = new StringWriter();
+        var context = new CommandContext(parser.parse(input), registry, new PrintWriter(output, true), null);
+        new CommandExecutor(registry).execute(context);
+        return output.toString();
+    }
+
+    static class FakeRadioBrowserService extends RadioBrowserService {
+        List<OnlineStation> results = List.of();
+        Integer lastLimit;
+
+        @Override
+        public List<OnlineStation> search(String query, String country, String tag, int limit) {
+            lastLimit = limit;
+            return results;
+        }
+    }
+
     static class FakeAudioPlayer extends AudioPlayer {
         boolean playing;
         boolean recording;
@@ -352,6 +514,7 @@ class RadioCommandsTest {
         Path recordFile;
         Duration sleepDuration;
         LocalDateTime sleepEndsAt;
+        LiveSession liveSession;
         List<SongHistoryEntry> history = List.of();
 
         FakeAudioPlayer() {
@@ -471,6 +634,11 @@ class RadioCommandsTest {
         @Override
         public synchronized Duration getSleepRemaining() {
             return sleepDuration != null ? sleepDuration : Duration.ZERO;
+        }
+
+        @Override
+        public synchronized LiveSession getLiveSession() {
+            return liveSession;
         }
 
         @Override

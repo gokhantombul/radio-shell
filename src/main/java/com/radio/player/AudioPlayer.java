@@ -205,6 +205,7 @@ public class AudioPlayer {
                     currentStation = null;
                     currentProcess = null;
                     currentPlaybackStartedAt = null;
+                    sessionStartedAt = null;
                     cancelStreamInfoProbe();
                     return false;
                 }
@@ -216,6 +217,7 @@ public class AudioPlayer {
             currentStation = null;
             currentProcess = null;
             currentPlaybackStartedAt = null;
+            sessionStartedAt = null;
             cancelStreamInfoProbe();
             return false;
         } catch (IOException e) {
@@ -223,6 +225,7 @@ public class AudioPlayer {
             currentStation = null;
             currentProcess = null;
             currentPlaybackStartedAt = null;
+            sessionStartedAt = null;
             cancelStreamInfoProbe();
             return false;
         }
@@ -554,6 +557,9 @@ public class AudioPlayer {
             currentSongInfo = null;
             currentStreamInfo = null;
             currentPlaybackStartedAt = LocalDateTime.now();
+            if (sessionStartedAt == null) {
+                sessionStartedAt = currentPlaybackStartedAt;
+            }
             long streamInfoGeneration = ++playbackGeneration;
             saveLastStation(station);
             startMetadataThread(newProcess);
@@ -562,6 +568,7 @@ public class AudioPlayer {
             log.info("Yeniden bağlandı ({}/{}): {}", generation, MAX_RECONNECT_ATTEMPTS, station.name());
         } catch (IOException e) {
             log.error("Yeniden bağlanma hatası: {}", e.getMessage());
+            recordAndClearSession();
             currentStation = null;
             currentProcess = null;
             currentStreamInfo = null;

@@ -87,7 +87,10 @@ public class SettingsService {
         if (path == null) return;
         try {
             Path p = Path.of(path);
-            Files.createDirectories(p.getParent());
+            Path parent = p.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
             mapper.writeValue(p.toFile(), settings);
         } catch (IOException e) {
             log.error("Ayarlar kaydedilemedi: {}", e.getMessage());

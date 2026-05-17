@@ -468,7 +468,7 @@ public class InteractiveShell implements ApplicationRunner {
         out.println("    favoriler            - Favori listesi");
         out.println();
         out.println("  " + t.bold() + "İSTATİSTİK" + t.reset());
-        out.println("    istatistik           - En çok dinlenen istasyonlar ve toplam süre");
+        out.println("    istatistik           - En çok dinlenen ilk 10 istasyon ve toplam süre");
         out.println("    istatistik -n <adet> - Gösterilecek istasyon sayısını belirler");
         out.println();
         out.println("  " + t.bold() + "ONLINE İSTASYONLAR" + t.reset());

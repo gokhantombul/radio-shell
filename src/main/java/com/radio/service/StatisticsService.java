@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -35,10 +36,6 @@ public class StatisticsService {
             long totalSeconds,
             int sessionCount
     ) {
-        StationStat add(long seconds) {
-            return new StationStat(stationId, stationName, country, genre,
-                    totalSeconds + seconds, sessionCount + 1);
-        }
     }
 
     private final RadioConfig config;
@@ -60,15 +57,29 @@ public class StatisticsService {
         long seconds = duration.toSeconds();
         stats.merge(station.id(),
                 new StationStat(station.id(), station.name(), station.country(), station.genre(), seconds, 1),
-                (existing, incoming) -> existing.add(seconds));
+                (existing, incoming) -> new StationStat(
+                        station.id(),
+                        station.name(),
+                        station.country(),
+                        station.genre(),
+                        existing.totalSeconds() + seconds,
+                        existing.sessionCount() + 1));
         save();
     }
 
     public synchronized List<StationStat> getTopStations(int limit) {
+        if (limit <= 0) return List.of();
         return stats.values().stream()
-                .sorted(Comparator.comparingLong(StationStat::totalSeconds).reversed())
+                .sorted(byListenTimeDesc())
                 .limit(limit)
                 .toList();
+    }
+
+    public synchronized Optional<StationStat> getStationStat(String stationId) {
+        if (stationId == null || stationId.isBlank()) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(stats.get(stationId));
     }
 
     public synchronized Duration getTotalListenTime() {
@@ -88,7 +99,9 @@ public class StatisticsService {
         try {
             StationStat[] loaded = mapper.readValue(file, StationStat[].class);
             for (StationStat s : loaded) {
-                stats.put(s.stationId(), s);
+                if (s != null && s.stationId() != null && !s.stationId().isBlank()) {
+                    stats.put(s.stationId(), s);
+                }
             }
         } catch (IOException e) {
             log.error("İstatistikler yüklenemedi: {}", e.getMessage());
@@ -100,10 +113,18 @@ public class StatisticsService {
         if (path == null) return;
         try {
             Path p = Path.of(path);
-            Files.createDirectories(p.getParent());
-            mapper.writeValue(p.toFile(), stats.values().toArray());
+            Path parent = p.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            mapper.writeValue(p.toFile(), stats.values().stream().sorted(byListenTimeDesc()).toList());
         } catch (IOException e) {
             log.error("İstatistikler kaydedilemedi: {}", e.getMessage());
         }
+    }
+
+    private static Comparator<StationStat> byListenTimeDesc() {
+        return Comparator.comparingLong(StationStat::totalSeconds).reversed()
+                .thenComparing(StationStat::stationName, Comparator.nullsLast(String::compareToIgnoreCase));
     }
 }
