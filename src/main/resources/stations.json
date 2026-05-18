@@ -45,7 +45,7 @@
       "name": "TRT Radyo Haber",
       "country": "Türkiye",
       "genre": "Haber",
-      "url": "https://trt.radyotvonline.net/trthaber",
+      "url": "https://radio-trtradyohaber.live.trt.com.tr/master.m3u8",
       "favorite": false
     },
     {
@@ -61,7 +61,7 @@
       "name": "Power FM",
       "country": "Türkiye",
       "genre": "Pop/Dance",
-      "url": "https://listen.powerapp.com.tr/powerfm/mpeg/icecast.audio",
+      "url": "http://streamnavs.net:8143/live",
       "favorite": false
     },
     {
@@ -141,7 +141,7 @@
       "name": "Radyo D",
       "country": "Türkiye",
       "genre": "Pop",
-      "url": "https://radyo.duhnet.tv/radyod",
+      "url": "https://moondigitaledge2.radyotvonline.net/radyod/playlist.m3u8",
       "favorite": false
     },
     {
@@ -157,7 +157,7 @@
       "name": "NTV Radyo",
       "country": "Türkiye",
       "genre": "Haber/Kültür",
-      "url": "http://ntvrdwmp.radyotvonline.com/",
+      "url": "http://46.20.3.207/listen.pls",
       "favorite": false
     },
     {
@@ -181,7 +181,7 @@
       "name": "Pal Station",
       "country": "Türkiye",
       "genre": "Yabancı Pop",
-      "url": "http://shoutcast.radyogrup.com:1020/stream",
+      "url": "http://shoutcast.radyogrup.com:1020/",
       "favorite": true
     },
     {
@@ -213,7 +213,7 @@
       "name": "Show Radyo",
       "country": "Türkiye",
       "genre": "Pop",
-      "url": "https://sslyayin.netyayin.net:6065/stream",
+      "url": "https://sslyayin.netyayin.net:6065/",
       "favorite": false
     },
     {
@@ -221,7 +221,7 @@
       "name": "Radyo Viva",
       "country": "Türkiye",
       "genre": "Pop",
-      "url": "https://radyoviva.radyotvonline.net/radyovivaaac",
+      "url": "https://edge1.radyotvonline.net/shoutcast/play/radyoviva",
       "favorite": false
     },
     {
@@ -349,7 +349,7 @@
       "name": "Radyo Munzur",
       "country": "Türkiye",
       "genre": "Türk Halk Müziği",
-      "url": "http://yayin1.yayindakiler.com:3002/",
+      "url": "http://yayin1.yayindakiler.com:3002/;stream.nsv",
       "favorite": false
     },
     {
@@ -381,7 +381,7 @@
       "name": "Radyo Banko",
       "country": "Türkiye",
       "genre": "Türk Halk Müziği",
-      "url": "http://yayin.netradyom.com:9910/RADYOBANKO",
+      "url": "http://yayin.netradyom.com:8050/RADYOBANKO",
       "favorite": false
     },
     {
@@ -389,7 +389,7 @@
       "name": "BBC Radio 1",
       "country": "İngiltere",
       "genre": "Pop/Rock",
-      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_one.m3u8",
+      "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_radio_one",
       "favorite": false
     },
     {
@@ -397,7 +397,7 @@
       "name": "BBC Radio 2",
       "country": "İngiltere",
       "genre": "Adult Contemporary",
-      "url": "http://as-hls-ww-live.akamaized.net/pool_74208725/live/ww/bbc_radio_two/bbc_radio_two.isml/bbc_radio_two-audio%3d128000.norewind.m3u8",
+      "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_radio_two",
       "favorite": false
     },
     {
@@ -405,7 +405,7 @@
       "name": "BBC Radio 3",
       "country": "İngiltere",
       "genre": "Classical",
-      "url": "http://as-hls-ww-live.akamaized.net/pool_23461179/live/ww/bbc_radio_three/bbc_radio_three.isml/bbc_radio_three-audio%3d128000.norewind.m3u8",
+      "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_radio_three",
       "favorite": false
     },
     {
@@ -413,7 +413,7 @@
       "name": "BBC Radio 4",
       "country": "İngiltere",
       "genre": "Talk/News",
-      "url": "http://as-hls-ww-live.akamaized.net/pool_55057080/live/ww/bbc_radio_fourfm/bbc_radio_fourfm.isml/bbc_radio_fourfm-audio%3d128000.norewind.m3u8",
+      "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_radio_fourfm",
       "favorite": false
     },
     {
@@ -421,7 +421,7 @@
       "name": "BBC 6 Music",
       "country": "İngiltere",
       "genre": "Alternative",
-      "url": "http://as-hls-ww-live.akamaized.net/pool_81827798/live/ww/bbc_6music/bbc_6music.isml/bbc_6music-audio%3d128000.norewind.m3u8",
+      "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_6music",
       "favorite": false
     },
     {
@@ -429,7 +429,7 @@
       "name": "BBC 1Xtra",
       "country": "İngiltere",
       "genre": "Hip Hop/R&B",
-      "url": "http://as-hls-ww-live.akamaized.net/pool_92079267/live/ww/bbc_1xtra/bbc_1xtra.isml/bbc_1xtra-audio%3d128000.norewind.m3u8",
+      "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_1xtra",
       "favorite": false
     },
     {
@@ -525,7 +525,7 @@
       "name": "France Musique",
       "country": "Fransa",
       "genre": "Classical",
-      "url": "https://icecast.radiofrance.fr/francemusique-midfi.mp3",
+      "url": "http://icecast.radiofrance.fr/francemusique-hifi.aac",
       "favorite": false
     },
     {
@@ -541,7 +541,7 @@
       "name": "FIP Electro",
       "country": "Fransa",
       "genre": "Electronic",
-      "url": "https://icecast.radiofrance.fr/fipelectro-midfi.mp3",
+      "url": "http://icecast.radiofrance.fr/fipelectro-hifi.aac",
       "favorite": false
     },
     {
@@ -573,7 +573,7 @@
       "name": "RAI Radio 2",
       "country": "İtalya",
       "genre": "Pop/Entertainment",
-      "url": "http://icecdn-19d24861e90342cc8decb03c24c8a419.msvdn.net/icecastRelay/S35942484/yp5F67151K92/icecast",
+      "url": "http://icestreaming.rai.it/2.mp3",
       "favorite": false
     },
     {
@@ -629,7 +629,7 @@
       "name": "Rock Antenne",
       "country": "Almanya",
       "genre": "Rock/Indie",
-      "url": "http://mp3channels.webradio.rockantenne.de/classic-perlen",
+      "url": "http://mp3channels.webradio.rockantenne.de/rockantenne",
       "favorite": false
     },
     {
@@ -661,7 +661,7 @@
       "name": "Hard Rock Heaven",
       "country": "ABD",
       "genre": "Rock/Indie",
-      "url": "http://andromeda.shoutca.st:9254/stream",
+      "url": "http://hydra.cdnstream.com/1521_128",
       "favorite": false
     },
     {
@@ -677,7 +677,7 @@
       "name": "Virgin Radio UK",
       "country": "İngiltere",
       "genre": "Rock/Indie",
-      "url": "http://provisioning.streamtheworld.com/pls/VIRGIN_RADIO.pls",
+      "url": "https://radio.virginradio.co.uk/stream",
       "favorite": false
     },
     {
@@ -693,7 +693,7 @@
       "name": "Radio Caroline",
       "country": "İngiltere",
       "genre": "Rock/Indie",
-      "url": "http://sc6.radiocaroline.net:8040/;stream.mp3",
+      "url": "http://78.129.202.200:8040/;",
       "favorite": false
     },
     {
@@ -725,7 +725,7 @@
       "name": "BBC World Service",
       "country": "World",
       "genre": "News/Talk",
-      "url": "http://as-hls-ww.live.cf.md.bbci.co.uk/pool_07364996/live/ww/bbc_world_service_news_internet/bbc_world_service_news_internet.isml/bbc_world_service_news_internet-audio=320000.norewind.m3u8",
+      "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_world_service",
       "favorite": false
     }
   ]
