@@ -367,7 +367,7 @@ public class InteractiveShell implements ApplicationRunner {
 
         var t = theme();
         return "  " + t.secondary() + t.bold() + parts.getFirst() + t.reset()
-                + " " + t.primary() + UIUtils.truncate(String.join(" | ", parts.subList(1, parts.size())), 105) + t.reset();
+                + " " + t.primary() + UIUtils.truncate(String.join(" | ", parts.subList(1, parts.size())), 160) + t.reset();
     }
 
     private void appendStreamInfoParts(List<String> parts, AudioPlayer.StreamInfo streamInfo) {

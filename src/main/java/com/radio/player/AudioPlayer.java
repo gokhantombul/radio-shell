@@ -13,10 +13,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -94,6 +97,7 @@ public class AudioPlayer {
 
     private ScheduledFuture<?> sleepFuture;
     private LocalDateTime sleepEndsAt;
+    private volatile InputStream icyPollerStream;
 
     private final Deque<SongHistoryEntry> songHistory = new ArrayDeque<>();
 
@@ -180,6 +184,7 @@ public class AudioPlayer {
             startMetadataThread(captured);
             startWatchdog(station, captured, 0);
             startStreamInfoProbe(station, streamInfoGeneration);
+            startIcyMetadataPoller(station, captured);
 
             // Show connection progress animation
             String[] spinner = {"⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"};
@@ -393,6 +398,7 @@ public class AudioPlayer {
     public synchronized void shutdown() {
         cancelSleepTimer();
         cancelStreamInfoProbe();
+        stopIcyMetadataPoller();
         sleepScheduler.shutdownNow();
         streamInfoScheduler.shutdownNow();
     }
@@ -433,6 +439,7 @@ public class AudioPlayer {
     }
 
     private void killCurrentProcess() {
+        stopIcyMetadataPoller();
         recordAndClearSession();
         if (currentProcess != null && currentProcess.isAlive()) {
             currentProcess.destroyForcibly();
@@ -565,6 +572,7 @@ public class AudioPlayer {
             startMetadataThread(newProcess);
             startWatchdog(station, newProcess, generation);
             startStreamInfoProbe(station, streamInfoGeneration);
+            startIcyMetadataPoller(station, newProcess);
             log.info("Yeniden bağlandı ({}/{}): {}", generation, MAX_RECONNECT_ATTEMPTS, station.name());
         } catch (IOException e) {
             log.error("Yeniden bağlanma hatası: {}", e.getMessage());
@@ -658,6 +666,77 @@ public class AudioPlayer {
             streamInfoFuture = null;
         }
         streamInfoAttempts = 0;
+    }
+
+    private void startIcyMetadataPoller(RadioStation station, Process capturedProcess) {
+        stopIcyMetadataPoller();
+        Thread t = new Thread(() -> {
+            try {
+                URLConnection conn = new URL(station.url()).openConnection();
+                conn.setRequestProperty("Icy-MetaData", "1");
+                conn.setRequestProperty("User-Agent", "Radio Shell/1.0");
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(0);
+                conn.connect();
+                String metaIntStr = conn.getHeaderField("icy-metaint");
+                if (metaIntStr == null || metaIntStr.isBlank()) return;
+                int metaInt;
+                try {
+                    metaInt = Integer.parseInt(metaIntStr.trim());
+                } catch (NumberFormatException e) {
+                    return;
+                }
+                if (metaInt <= 0) return;
+                try (InputStream stream = conn.getInputStream()) {
+                    icyPollerStream = stream;
+                    byte[] skipBuf = new byte[4096];
+                    while (!stopRequested) {
+                        synchronized (AudioPlayer.this) {
+                            if (currentProcess != capturedProcess) break;
+                        }
+                        long remaining = metaInt;
+                        while (remaining > 0) {
+                            int toRead = (int) Math.min(remaining, skipBuf.length);
+                            int read = stream.read(skipBuf, 0, toRead);
+                            if (read < 0) return;
+                            remaining -= read;
+                        }
+                        int lenByte = stream.read();
+                        if (lenByte < 0) return;
+                        int metaLen = lenByte * 16;
+                        if (metaLen > 0) {
+                            byte[] metaBytes = stream.readNBytes(metaLen);
+                            if (metaBytes.length == 0) return;
+                            String meta = new String(metaBytes, StandardCharsets.ISO_8859_1);
+                            int nullIdx = meta.indexOf('\0');
+                            if (nullIdx >= 0) meta = meta.substring(0, nullIdx);
+                            String title = extractSongTitle(meta.trim());
+                            if (title != null && !title.isBlank()) {
+                                synchronized (AudioPlayer.this) {
+                                    if (currentProcess == capturedProcess) {
+                                        updateSongTitle(title);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.debug("ICY metadata poller bitti: {}", e.getMessage());
+            } finally {
+                icyPollerStream = null;
+            }
+        }, "IcyMetadataPoller");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private void stopIcyMetadataPoller() {
+        InputStream s = icyPollerStream;
+        if (s != null) {
+            try { s.close(); } catch (IOException ignored) {}
+            icyPollerStream = null;
+        }
     }
 
     private synchronized void updateStreamInfo(StreamInfo streamInfo, long generation) {
