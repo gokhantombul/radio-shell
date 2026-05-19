@@ -7,6 +7,7 @@ import com.radio.service.RadioBrowserService;
 import com.radio.service.SettingsService;
 import com.radio.service.StatisticsService;
 import com.radio.service.StationService;
+import com.radio.service.SystemInfoService;
 import com.radio.util.ThemeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -471,6 +472,18 @@ class RadioCommandsTest {
         assertThat(result).doesNotContain("Kayıt sayısı");
     }
 
+    @Test
+    void systemInfo_shellCommandReturnsPanel() throws Exception {
+        var systemInfo = new FakeSystemInfoService();
+        commands = new RadioCommands(stationService, player, new ThemeManager(),
+                null, null, null, null, systemInfo);
+
+        String result = executeShellCommand("sistem", "systemInfo");
+
+        assertThat(result).contains("Sistem Bilgileri");
+        assertThat(systemInfo.lastPlayerProcess).isNull();
+    }
+
     private String executeShellCommand(String input, String methodName, Class<?>... parameterTypes) throws Exception {
         Method method = RadioCommands.class.getMethod(methodName, parameterTypes);
         var factoryBean = new CommandFactoryBean(method);
@@ -494,6 +507,18 @@ class RadioCommandsTest {
         public List<OnlineStation> search(String query, String country, String tag, int limit) {
             lastLimit = limit;
             return results;
+        }
+    }
+
+    static class FakeSystemInfoService extends SystemInfoService {
+        ProcessHandle lastPlayerProcess;
+
+        @Override
+        public String formatSystemInfo(ProcessHandle playerProcess) {
+            lastPlayerProcess = playerProcess;
+            return "\n╭──────── Sistem Bilgileri ────────╮\n"
+                    + "│  Radyo Shell (Java):  54.52 MB   │\n"
+                    + "╰──────────────────────────────────╯\n";
         }
     }
 

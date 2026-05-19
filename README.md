@@ -143,6 +143,7 @@ docker run --rm -it \
 | `iceaktar -d <dosya.m3u\|dosya.pls> [-u ülke] [-t tür] [-p önek]` | Playlist dosyasından özel istasyon ekler |
 | `sil --id <id>` | Özel istasyonu siler |
 | `tema [-i <tema>]` | Renk temasını listeler veya değiştirir |
+| `sistem` | Radyo Shell, ffplay, CPU ve RAM kaynak kullanımını gösterir |
 
 ### Diğer
 

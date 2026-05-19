@@ -7,6 +7,7 @@ import com.radio.service.RadioBrowserService;
 import com.radio.service.SettingsService;
 import com.radio.service.StatisticsService;
 import com.radio.service.StationService;
+import com.radio.service.SystemInfoService;
 import com.radio.util.Theme;
 import com.radio.util.ThemeManager;
 import com.radio.util.UIUtils;
@@ -45,6 +46,7 @@ public class RadioCommands {
     private final StatisticsService statisticsService;
     private final NotificationService notificationService;
     private final RadioBrowserService radioBrowserService;
+    private final SystemInfoService systemInfoService;
 
     private List<RadioStation> navigationList = List.of();
     private List<RadioBrowserService.OnlineStation> lastOnlineSearch = List.of();
@@ -52,7 +54,8 @@ public class RadioCommands {
     @Autowired
     public RadioCommands(StationService stationService, AudioPlayer player, ThemeManager themeManager,
                          SettingsService settingsService, StatisticsService statisticsService,
-                         NotificationService notificationService, RadioBrowserService radioBrowserService) {
+                         NotificationService notificationService, RadioBrowserService radioBrowserService,
+                         SystemInfoService systemInfoService) {
         this.stationService = stationService;
         this.player = player;
         this.themeManager = themeManager;
@@ -60,6 +63,14 @@ public class RadioCommands {
         this.statisticsService = statisticsService;
         this.notificationService = notificationService;
         this.radioBrowserService = radioBrowserService;
+        this.systemInfoService = systemInfoService;
+    }
+
+    public RadioCommands(StationService stationService, AudioPlayer player, ThemeManager themeManager,
+                         SettingsService settingsService, StatisticsService statisticsService,
+                         NotificationService notificationService, RadioBrowserService radioBrowserService) {
+        this(stationService, player, themeManager, settingsService, statisticsService,
+                notificationService, radioBrowserService, new SystemInfoService());
     }
 
     public RadioCommands(StationService stationService, AudioPlayer player, ThemeManager themeManager) {
@@ -776,6 +787,11 @@ public class RadioCommands {
         return newState
                 ? "  Bildirimler açıldı. Şarkı değişince masaüstü bildirimi gösterilecek."
                 : "  Bildirimler kapatıldı.";
+    }
+
+    @Command(name = "sistem", description = "Sistem kaynak kullanımını gösterir", group = "Yönetim")
+    public String systemInfo() {
+        return systemInfoService.formatSystemInfo(player.getCurrentProcessHandle());
     }
 
     @Command(name = "online-ara", description = "RadioBrowser.info üzerinden istasyon arar", group = "Online")

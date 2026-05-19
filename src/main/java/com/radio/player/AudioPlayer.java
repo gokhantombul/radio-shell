@@ -246,6 +246,10 @@ public class AudioPlayer {
         return currentProcess != null && currentProcess.isAlive();
     }
 
+    public synchronized ProcessHandle getCurrentProcessHandle() {
+        return isPlaying() ? currentProcess.toHandle() : null;
+    }
+
     public synchronized RadioStation getCurrentStation() {
         return currentStation;
     }
