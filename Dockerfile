@@ -1,16 +1,4 @@
-# ─── Stage 1: Build ───────────────────────────────────────────────────────────
-FROM maven:3.9-eclipse-temurin-25 AS builder
-
-WORKDIR /app
-COPY pom.xml .
-# Dependency cache katmanı
-RUN mvn dependency:go-offline -q
-
-COPY src ./src
-RUN mvn clean package -DskipTests -q
-
-# ─── Stage 2: Runtime ─────────────────────────────────────────────────────────
-FROM eclipse-temurin:25-jre
+FROM python:3.12-slim
 
 LABEL maintainer="Radio Shell"
 LABEL description="Terminal FM Radio Player - Türkiye & Dünya"
@@ -22,12 +10,19 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=builder /app/target/radio-shell-1.0.0.jar app.jar
+
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application source code
+COPY src ./src
 
 # Favori ve özel istasyon verisi için volume
 VOLUME ["/root/.radio-shell"]
 
 # İnteraktif terminal gerekli
 ENV TERM=xterm-256color
+ENV PYTHONPATH=/app
 
-ENTRYPOINT ["java", "--enable-native-access=ALL-UNNAMED", "-jar", "app.jar"]
+ENTRYPOINT ["python3", "-m", "src.radio.main"]

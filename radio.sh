@@ -16,13 +16,6 @@ resolve_script_dir() {
 }
 
 SCRIPT_DIR="$(resolve_script_dir)"
-JAR_FILE="$SCRIPT_DIR/target/radio-shell-1.0.0.jar"
-
-if [ ! -f "$JAR_FILE" ]; then
-    echo "JAR dosyası bulunamadı. Derlemek için:"
-    echo "  cd $SCRIPT_DIR && mvn clean package -DskipTests"
-    exit 1
-fi
 
 if ! command -v ffplay >/dev/null 2>&1; then
     echo "⚠ ffplay bulunamadı. Lütfen ffmpeg yükleyin."
@@ -32,4 +25,20 @@ if ! command -v ffplay >/dev/null 2>&1; then
     exit 1
 fi
 
-exec java --enable-native-access=ALL-UNNAMED -XX:TieredStopAtLevel=1 -Dspring.main.lazy-initialization=true -jar "$JAR_FILE"
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "⚠ python3 bulunamadı. Lütfen Python yükleyin."
+    exit 1
+fi
+
+cd "$SCRIPT_DIR"
+
+if [ ! -d "venv" ]; then
+    echo "ℹ Python sanal ortamı (venv) oluşturuluyor..."
+    python3 -m venv venv
+    ./venv/bin/pip install -r requirements.txt -q
+fi
+
+# Set PYTHONPATH so absolute imports like src.radio.* work
+export PYTHONPATH="$SCRIPT_DIR"
+
+exec ./venv/bin/python3 -m src.radio.main
