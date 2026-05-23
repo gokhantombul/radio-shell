@@ -45,7 +45,7 @@
       "name": "TRT Radyo Haber",
       "country": "Türkiye",
       "genre": "Haber",
-      "url": "https://radio-trtradyohaber.live.trt.com.tr/master.m3u8",
+      "url": "https://trt.radyotvonline.net/trthaber",
       "favorite": false
     },
     {
@@ -389,7 +389,7 @@
       "name": "BBC Radio 1",
       "country": "İngiltere",
       "genre": "Pop/Rock",
-      "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_radio_one",
+      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/cf/bbc_radio_one.m3u8",
       "favorite": false
     },
     {
@@ -397,7 +397,7 @@
       "name": "BBC Radio 2",
       "country": "İngiltere",
       "genre": "Adult Contemporary",
-      "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_radio_two",
+      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/cf/bbc_radio_two.m3u8",
       "favorite": false
     },
     {
@@ -405,7 +405,7 @@
       "name": "BBC Radio 3",
       "country": "İngiltere",
       "genre": "Classical",
-      "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_radio_three",
+      "url": "http://as-hls-ww-live.akamaized.net/pool_23461179/live/ww/bbc_radio_three/bbc_radio_three.isml/bbc_radio_three-audio%3d96000.norewind.m3u8",
       "favorite": false
     },
     {
@@ -413,7 +413,7 @@
       "name": "BBC Radio 4",
       "country": "İngiltere",
       "genre": "Talk/News",
-      "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_radio_fourfm",
+      "url": "http://as-hls-ww-live.akamaized.net/pool_55057080/live/ww/bbc_radio_fourfm/bbc_radio_fourfm.isml/bbc_radio_fourfm-audio=128000.norewind.m3u8",
       "favorite": false
     },
     {
@@ -421,7 +421,7 @@
       "name": "BBC 6 Music",
       "country": "İngiltere",
       "genre": "Alternative",
-      "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_6music",
+      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/cf/bbc_6music.m3u8",
       "favorite": false
     },
     {
@@ -429,7 +429,7 @@
       "name": "BBC 1Xtra",
       "country": "İngiltere",
       "genre": "Hip Hop/R&B",
-      "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_1xtra",
+      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/cf/bbc_1xtra.m3u8",
       "favorite": false
     },
     {
@@ -469,7 +469,7 @@
       "name": "WQXR Classical",
       "country": "ABD",
       "genre": "Classical",
-      "url": "https://stream.wqxr.org/wqxr-web",
+      "url": "http://stream.wqxr.org/wqxr",
       "favorite": false
     },
     {
@@ -653,7 +653,7 @@
       "name": "Rock FM",
       "country": "İspanya",
       "genre": "Rock/Indie",
-      "url": "http://rockfm.cope.stream.flumotion.com/cope/rockfm/playlist.m3u8",
+      "url": "https://rockfm-cope.flumotion.com/chunks.m3u8",
       "favorite": false
     },
     {
@@ -725,7 +725,7 @@
       "name": "BBC World Service",
       "country": "World",
       "genre": "News/Talk",
-      "url": "http://stream.live.vc.bbcmedia.co.uk/bbc_world_service",
+      "url": "https://stream.live.vc.bbcmedia.co.uk/bbc_world_service_east_asia",
       "favorite": false
     }
   ]
