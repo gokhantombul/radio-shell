@@ -85,7 +85,7 @@
       "name": "Kral FM",
       "country": "Türkiye",
       "genre": "Türkçe Pop",
-      "url": "https://dygedge2.radyotvonline.net/kralfm/playlist.m3u8",
+      "url": "https://dygedge2.radyotvonline.net/kralfm/playlist.m3u8?listenerid=29d0a6a85b59cea2ca801b70d2a3ebaf&awparams=companionAds%3Atrue",
       "favorite": false
     },
     {
@@ -261,7 +261,7 @@
       "name": "Baba Radyo",
       "country": "Türkiye",
       "genre": "Arabesk",
-      "url": "http://officialbabaradyo.radyotvonline.net/babaofficial",
+      "url": "https://babaradyo.turkhosted.com/best/babaradyo.stream/playlist.m3u8",
       "favorite": false
     },
     {
@@ -269,7 +269,7 @@
       "name": "Arabesk FM",
       "country": "Türkiye",
       "genre": "Arabesk",
-      "url": "http://yayin.arabeskfm.biz:8042/stream",
+      "url": "https://yayin.radyoarabesk.com.tr:8000/stream",
       "favorite": false
     },
     {
@@ -277,7 +277,7 @@
       "name": "Virgin Radio TR",
       "country": "Türkiye",
       "genre": "Pop/Rock",
-      "url": "https://playerservices.streamtheworld.com/api/livestream-redirect/VIRGIN_RADIOAAC_SC",
+      "url": "http://provisioning.streamtheworld.com/pls/VIRGIN_RADIO.pls",
       "favorite": false
     },
     {
@@ -285,7 +285,7 @@
       "name": "JoyTürk Rock",
       "country": "Türkiye",
       "genre": "Rock/Indie",
-      "url": "https://playerservices.streamtheworld.com/api/livestream-redirect/JOYTURK_ROCK_SC",
+      "url": "http://23613.live.streamtheworld.com/JOYTURK_ROCK128AAC.aac",
       "favorite": false
     },
     {
@@ -293,7 +293,7 @@
       "name": "Radyo ODTÜ Rock",
       "country": "Türkiye",
       "genre": "Rock/Indie",
-      "url": "https://stream3.radyoodtu.com.tr:8000/rock",
+      "url": "http://stream.radyoodtu.com.tr/rock",
       "favorite": false
     },
     {
@@ -389,7 +389,7 @@
       "name": "BBC Radio 1",
       "country": "İngiltere",
       "genre": "Pop/Rock",
-      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/cf/bbc_radio_one.m3u8",
+      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_one.m3u8",
       "favorite": false
     },
     {
@@ -397,7 +397,7 @@
       "name": "BBC Radio 2",
       "country": "İngiltere",
       "genre": "Adult Contemporary",
-      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/cf/bbc_radio_two.m3u8",
+      "url": "http://as-hls-ww-live.akamaized.net/pool_74208725/live/ww/bbc_radio_two/bbc_radio_two.isml/bbc_radio_two-audio%3d128000.norewind.m3u8",
       "favorite": false
     },
     {
@@ -405,7 +405,7 @@
       "name": "BBC Radio 3",
       "country": "İngiltere",
       "genre": "Classical",
-      "url": "http://as-hls-ww-live.akamaized.net/pool_23461179/live/ww/bbc_radio_three/bbc_radio_three.isml/bbc_radio_three-audio%3d96000.norewind.m3u8",
+      "url": "http://as-hls-ww-live.akamaized.net/pool_23461179/live/ww/bbc_radio_three/bbc_radio_three.isml/bbc_radio_three-audio%3d128000.norewind.m3u8",
       "favorite": false
     },
     {
@@ -413,7 +413,7 @@
       "name": "BBC Radio 4",
       "country": "İngiltere",
       "genre": "Talk/News",
-      "url": "http://as-hls-ww-live.akamaized.net/pool_55057080/live/ww/bbc_radio_fourfm/bbc_radio_fourfm.isml/bbc_radio_fourfm-audio=128000.norewind.m3u8",
+      "url": "http://as-hls-ww-live.akamaized.net/pool_55057080/live/ww/bbc_radio_fourfm/bbc_radio_fourfm.isml/bbc_radio_fourfm-audio%3d128000.norewind.m3u8",
       "favorite": false
     },
     {
@@ -421,7 +421,7 @@
       "name": "BBC 6 Music",
       "country": "İngiltere",
       "genre": "Alternative",
-      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/cf/bbc_6music.m3u8",
+      "url": "http://as-hls-ww-live.akamaized.net/pool_81827798/live/ww/bbc_6music/bbc_6music.isml/bbc_6music-audio=320000.norewind.m3u8",
       "favorite": false
     },
     {
@@ -429,7 +429,7 @@
       "name": "BBC 1Xtra",
       "country": "İngiltere",
       "genre": "Hip Hop/R&B",
-      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/cf/bbc_1xtra.m3u8",
+      "url": "http://as-hls-ww-live.akamaized.net/pool_92079267/live/ww/bbc_1xtra/bbc_1xtra.isml/bbc_1xtra-audio%3d128000.norewind.m3u8",
       "favorite": false
     },
     {
@@ -437,7 +437,7 @@
       "name": "Radio Paradise",
       "country": "ABD",
       "genre": "Eclectic/Rock",
-      "url": "http://stream.radioparadise.com/aac-128",
+      "url": "http://stream-uk1.radioparadise.com/aac-320",
       "favorite": false
     },
     {
@@ -461,7 +461,7 @@
       "name": "Jazz24",
       "country": "ABD",
       "genre": "Jazz",
-      "url": "https://knkx-live-a.edge.audiocdn.com/6285_128k/playlist.m3u8",
+      "url": "https://knkx-live-a.edge.audiocdn.com/6285_256k",
       "favorite": false
     },
     {
@@ -517,7 +517,7 @@
       "name": "FIP Radio",
       "country": "Fransa",
       "genre": "Eclectic",
-      "url": "https://icecast.radiofrance.fr/fip-midfi.mp3",
+      "url": "https://stream.radiofrance.fr/fip/fip.m3u8",
       "favorite": false
     },
     {
@@ -525,7 +525,7 @@
       "name": "France Musique",
       "country": "Fransa",
       "genre": "Classical",
-      "url": "http://icecast.radiofrance.fr/francemusique-hifi.aac",
+      "url": "http://direct.francemusique.fr/live/francemusique-midfi.mp3",
       "favorite": false
     },
     {
@@ -533,7 +533,7 @@
       "name": "France Inter",
       "country": "Fransa",
       "genre": "Talk/Culture",
-      "url": "https://icecast.radiofrance.fr/franceinter-midfi.mp3",
+      "url": "http://direct.franceinter.fr/live/franceinter-hifi.aac",
       "favorite": false
     },
     {
@@ -685,7 +685,7 @@
       "name": "The Sound",
       "country": "Yeni Zelanda",
       "genre": "Rock/Indie",
-      "url": "https://digitalstreams.mediaworks.nz/sound_net/playlist.m3u8",
+      "url": "https://mediaworks.streamguys1.com/sound_net/playlist.m3u8",
       "favorite": false
     },
     {
