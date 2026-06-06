@@ -325,7 +325,7 @@
       "name": "Radyo Ekin",
       "country": "Türkiye",
       "genre": "Türk Halk Müziği",
-      "url": "http://yayin.turkhosted.com:6006/",
+      "url": "https://yayin.turkhosted.com/6006/stream",
       "favorite": false
     },
     {
@@ -381,7 +381,7 @@
       "name": "Radyo Banko",
       "country": "Türkiye",
       "genre": "Türk Halk Müziği",
-      "url": "http://yayin.netradyom.com:8050/RADYOBANKO",
+      "url": "http://yayin.netradyom.com:9910/RADYOBANKO",
       "favorite": false
     },
     {
@@ -389,7 +389,7 @@
       "name": "BBC Radio 1",
       "country": "İngiltere",
       "genre": "Pop/Rock",
-      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_one.m3u8",
+      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/cf/bbc_radio_one.m3u8",
       "favorite": false
     },
     {
@@ -397,7 +397,7 @@
       "name": "BBC Radio 2",
       "country": "İngiltere",
       "genre": "Adult Contemporary",
-      "url": "http://as-hls-ww-live.akamaized.net/pool_74208725/live/ww/bbc_radio_two/bbc_radio_two.isml/bbc_radio_two-audio%3d128000.norewind.m3u8",
+      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/cf/bbc_radio_two.m3u8",
       "favorite": false
     },
     {
@@ -405,7 +405,7 @@
       "name": "BBC Radio 3",
       "country": "İngiltere",
       "genre": "Classical",
-      "url": "http://as-hls-ww-live.akamaized.net/pool_23461179/live/ww/bbc_radio_three/bbc_radio_three.isml/bbc_radio_three-audio%3d128000.norewind.m3u8",
+      "url": "http://as-hls-ww-live.akamaized.net/pool_23461179/live/ww/bbc_radio_three/bbc_radio_three.isml/bbc_radio_three-audio%3d96000.norewind.m3u8",
       "favorite": false
     },
     {
@@ -413,7 +413,7 @@
       "name": "BBC Radio 4",
       "country": "İngiltere",
       "genre": "Talk/News",
-      "url": "http://as-hls-ww-live.akamaized.net/pool_55057080/live/ww/bbc_radio_fourfm/bbc_radio_fourfm.isml/bbc_radio_fourfm-audio%3d128000.norewind.m3u8",
+      "url": "http://as-hls-ww-live.akamaized.net/pool_55057080/live/ww/bbc_radio_fourfm/bbc_radio_fourfm.isml/bbc_radio_fourfm-audio=128000.norewind.m3u8",
       "favorite": false
     },
     {
@@ -437,7 +437,7 @@
       "name": "Radio Paradise",
       "country": "ABD",
       "genre": "Eclectic/Rock",
-      "url": "http://stream-uk1.radioparadise.com/aac-320",
+      "url": "http://stream-dc1.radioparadise.com/rp_192m.ogg",
       "favorite": false
     },
     {
@@ -445,7 +445,7 @@
       "name": "KEXP 90.3 FM",
       "country": "ABD",
       "genre": "Indie/Alternative",
-      "url": "https://kexp.streamguys1.com/kexp160.aac",
+      "url": "http://live-aacplus-64.kexp.org/kexp64.aac",
       "favorite": false
     },
     {
@@ -461,7 +461,7 @@
       "name": "Jazz24",
       "country": "ABD",
       "genre": "Jazz",
-      "url": "https://knkx-live-a.edge.audiocdn.com/6285_256k",
+      "url": "https://knkx-live-a.edge.audiocdn.com/6285_128k?aw_0_1st.playerid=jazz24.org&uuid=2kjxxims",
       "favorite": false
     },
     {
@@ -477,7 +477,7 @@
       "name": "SomaFM Groove Salad",
       "country": "ABD",
       "genre": "Ambient/Chill",
-      "url": "https://ice5.somafm.com/groovesalad-128-mp3",
+      "url": "https://hls.somafm.com/hls/groovesalad/320k/program.m3u8",
       "favorite": false
     },
     {
@@ -493,7 +493,7 @@
       "name": "SomaFM Drone Zone",
       "country": "ABD",
       "genre": "Ambient/Space",
-      "url": "https://ice2.somafm.com/dronezone-256-mp3",
+      "url": "https://ice4.somafm.com/dronezone-128-mp3",
       "favorite": false
     },
     {
@@ -509,7 +509,7 @@
       "name": "SomaFM Cliqhop",
       "country": "İnternet",
       "genre": "IDM/Electronic",
-      "url": "https://ice2.somafm.com/cliqhop-128-mp3",
+      "url": "https://ice4.somafm.com/cliqhop-128-aac",
       "favorite": false
     },
     {
@@ -557,7 +557,7 @@
       "name": "SWR1",
       "country": "Almanya",
       "genre": "Pop/Oldies",
-      "url": "https://liveradio.swr.de/sw282p3/swr1bw/play.mp3",
+      "url": "https://liveradio.swr.de/sw331ch/swr1bw/",
       "favorite": false
     },
     {
@@ -565,7 +565,7 @@
       "name": "Deutschlandfunk Kultur",
       "country": "Almanya",
       "genre": "Culture/Classical",
-      "url": "https://st02.sslstream.dlf.de/dlf/02/128/mp3/stream.mp3",
+      "url": "https://st02.sslstream.dlf.de/dlf/02/low/aac/stream.aac?aggregator=web",
       "favorite": false
     },
     {
@@ -573,7 +573,7 @@
       "name": "RAI Radio 2",
       "country": "İtalya",
       "genre": "Pop/Entertainment",
-      "url": "http://icestreaming.rai.it/2.mp3",
+      "url": "https://icecdn-19d24861e90342cc8decb03c24c8a419.msvdn.net/icecastRelay/S35942484/yp5F67151K92/icecast",
       "favorite": false
     },
     {
@@ -589,7 +589,7 @@
       "name": "Radio 538",
       "country": "Hollanda",
       "genre": "Pop/Dance",
-      "url": "https://22593.live.streamtheworld.com/RADIO538.mp3",
+      "url": "http://playerservices.streamtheworld.com/api/livestream-redirect/RADIO538.mp3",
       "favorite": false
     },
     {
@@ -597,15 +597,15 @@
       "name": "Swiss Jazz",
       "country": "İsviçre",
       "genre": "Jazz",
-      "url": "http://stream.srg-ssr.ch/m/rsj/mp3_128",
+      "url": "http://stream.srg-ssr.ch/srgssr/rsj/aac/96",
       "favorite": false
     },
     {
       "id": "world-abc-lounge",
-      "name": "ABC Lounge",
-      "country": "Fransa",
+      "name": "Capital Chill UK",
+      "country": "İngiltere",
       "genre": "Lounge/Chillout",
-      "url": "http://ice.stream.frequence3.net/frequence3-128.mp3",
+      "url": "https://media-ssl.musicradio.com/CapitalChill",
       "favorite": false
     },
     {
@@ -613,7 +613,7 @@
       "name": "Chill Out Zone",
       "country": "İnternet",
       "genre": "Chillout/Lounge",
-      "url": "https://ice2.somafm.com/illstreet-128-mp3",
+      "url": "https://ice6.somafm.com/illstreet-128-aac",
       "favorite": false
     },
     {
@@ -677,7 +677,7 @@
       "name": "Virgin Radio UK",
       "country": "İngiltere",
       "genre": "Rock/Indie",
-      "url": "https://radio.virginradio.co.uk/stream",
+      "url": "https://virgin.live.stream.broadcasting.news/stream",
       "favorite": false
     },
     {
@@ -685,7 +685,7 @@
       "name": "The Sound",
       "country": "Yeni Zelanda",
       "genre": "Rock/Indie",
-      "url": "https://mediaworks.streamguys1.com/sound_net/playlist.m3u8",
+      "url": "https://digitalstreams.mediaworks.nz/sound_net/playlist.m3u8",
       "favorite": false
     },
     {
