@@ -141,7 +141,7 @@
       "name": "Radyo D",
       "country": "Türkiye",
       "genre": "Pop",
-      "url": "https://moondigitaledge2.radyotvonline.net/radyod/playlist.m3u8",
+      "url": "http://5.9.13.39:8140/stream",
       "favorite": false
     },
     {
@@ -293,7 +293,7 @@
       "name": "Radyo ODTÜ Rock",
       "country": "Türkiye",
       "genre": "Rock/Indie",
-      "url": "http://stream.radyoodtu.com.tr/rock",
+      "url": "https://stream3.radyoodtu.com.tr:8000/rock",
       "favorite": false
     },
     {
@@ -325,7 +325,7 @@
       "name": "Radyo Ekin",
       "country": "Türkiye",
       "genre": "Türk Halk Müziği",
-      "url": "http://yayin.turkhosted.com:6006/",
+      "url": "https://yayin.turkhosted.com/6006/stream",
       "favorite": false
     },
     {
@@ -389,7 +389,7 @@
       "name": "BBC Radio 1",
       "country": "İngiltere",
       "genre": "Pop/Rock",
-      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_one.m3u8",
+      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/cf/bbc_radio_one.m3u8",
       "favorite": false
     },
     {
@@ -397,7 +397,7 @@
       "name": "BBC Radio 2",
       "country": "İngiltere",
       "genre": "Adult Contemporary",
-      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_two.m3u8",
+      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/cf/bbc_radio_two.m3u8",
       "favorite": false
     },
     {
@@ -405,7 +405,7 @@
       "name": "BBC Radio 3",
       "country": "İngiltere",
       "genre": "Classical",
-      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_three.m3u8",
+      "url": "http://as-hls-ww-live.akamaized.net/pool_23461179/live/ww/bbc_radio_three/bbc_radio_three.isml/bbc_radio_three-audio%3d96000.norewind.m3u8",
       "favorite": false
     },
     {
@@ -413,7 +413,7 @@
       "name": "BBC Radio 4",
       "country": "İngiltere",
       "genre": "Talk/News",
-      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_radio_fourfm.m3u8",
+      "url": "http://as-hls-ww-live.akamaized.net/pool_55057080/live/ww/bbc_radio_fourfm/bbc_radio_fourfm.isml/bbc_radio_fourfm-audio=128000.norewind.m3u8",
       "favorite": false
     },
     {
@@ -421,7 +421,7 @@
       "name": "BBC 6 Music",
       "country": "İngiltere",
       "genre": "Alternative",
-      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_6music.m3u8",
+      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/cf/bbc_6music.m3u8",
       "favorite": false
     },
     {
@@ -429,7 +429,7 @@
       "name": "BBC 1Xtra",
       "country": "İngiltere",
       "genre": "Hip Hop/R&B",
-      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/ak/bbc_1xtra.m3u8",
+      "url": "http://a.files.bbci.co.uk/ms6/live/3441A116-B12E-4D2F-ACA8-C1984642FA4B/audio/simulcast/hls/nonuk/pc_hd_abr_v2/cf/bbc_1xtra.m3u8",
       "favorite": false
     },
     {
@@ -437,7 +437,7 @@
       "name": "Radio Paradise",
       "country": "ABD",
       "genre": "Eclectic/Rock",
-      "url": "http://stream-uk1.radioparadise.com/aac-320",
+      "url": "http://stream-dc1.radioparadise.com/rp_192m.ogg",
       "favorite": false
     },
     {
@@ -453,7 +453,7 @@
       "name": "WFMU",
       "country": "ABD",
       "genre": "Freeform",
-      "url": "https://stream0.wfmu.org/freeform-128k.mp3",
+      "url": "http://stream2.wfmu.org/drummer",
       "favorite": false
     },
     {
@@ -565,7 +565,7 @@
       "name": "Deutschlandfunk Kultur",
       "country": "Almanya",
       "genre": "Culture/Classical",
-      "url": "https://st02.sslstream.dlf.de/dlf/02/128/mp3/stream.mp3",
+      "url": "https://st02.sslstream.dlf.de/dlf/02/low/aac/stream.aac?aggregator=web",
       "favorite": false
     },
     {
@@ -573,7 +573,7 @@
       "name": "RAI Radio 2",
       "country": "İtalya",
       "genre": "Pop/Entertainment",
-      "url": "http://icestreaming.rai.it/2.mp3",
+      "url": "https://icecdn-19d24861e90342cc8decb03c24c8a419.msvdn.net/icecastRelay/S35942484/yp5F67151K92/icecast",
       "favorite": false
     },
     {
@@ -597,7 +597,7 @@
       "name": "Swiss Jazz",
       "country": "İsviçre",
       "genre": "Jazz",
-      "url": "http://stream.srg-ssr.ch/m/rsj/mp3_128",
+      "url": "http://stream.srg-ssr.ch/srgssr/rsj/aac/96",
       "favorite": false
     },
     {
@@ -605,7 +605,7 @@
       "name": "ABC Lounge",
       "country": "Fransa",
       "genre": "Lounge/Chillout",
-      "url": "http://ice.stream.frequence3.net/frequence3-128.mp3",
+      "url": "http://strm112.1.fm/chilloutlounge_mobile_mp3",
       "favorite": false
     },
     {
@@ -629,7 +629,7 @@
       "name": "Rock Antenne",
       "country": "Almanya",
       "genre": "Rock/Indie",
-      "url": "http://mp3channels.webradio.rockantenne.de/rockantenne",
+      "url": "https://mp3channels.webradio.antenne.de/rockantenne",
       "favorite": false
     },
     {
@@ -637,7 +637,7 @@
       "name": "Radio Paradise Rock",
       "country": "ABD",
       "genre": "Rock/Indie",
-      "url": "http://stream.radioparadise.com/rock-320",
+      "url": "http://stream-uk1.radioparadise.com/rock-320",
       "favorite": false
     },
     {
@@ -645,7 +645,7 @@
       "name": "Virgin Radio Classic Rock",
       "country": "İtalya",
       "genre": "Rock/Indie",
-      "url": "http://icy.unitedradio.it/VirginRockClassics.mp3",
+      "url": "https://icy.unitedradio.it/VirginRockClassics.mp3",
       "favorite": false
     },
     {
@@ -653,7 +653,7 @@
       "name": "Rock FM",
       "country": "İspanya",
       "genre": "Rock/Indie",
-      "url": "http://flucast31-h-cloud.flumotion.com/cope/rockfm-low.mp3",
+      "url": "https://drive.uber.radio/uber/starboxsoftrock/icecast.audio",
       "favorite": false
     },
     {
@@ -710,14 +710,6 @@
       "country": "Türkiye",
       "genre": "Pop/Türkçe",
       "url": "https://live.radyofenomen.com/fenomenpop/256/chunks.m3u8",
-      "favorite": false
-    },
-    {
-      "id": "tr-rock-kral",
-      "name": "İTÜ Radyosu Rock",
-      "country": "Türkiye",
-      "genre": "Rock/Indie",
-      "url": "http://160.75.86.29:8095/",
       "favorite": false
     },
     {
