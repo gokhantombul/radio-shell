@@ -141,7 +141,7 @@
       "name": "Radyo D",
       "country": "Türkiye",
       "genre": "Pop",
-      "url": "http://5.9.13.39:8140/stream",
+      "url": "https://moondigitaledge2.radyotvonline.net/radyod/playlist.m3u8",
       "favorite": false
     },
     {
@@ -461,7 +461,7 @@
       "name": "Jazz24",
       "country": "ABD",
       "genre": "Jazz",
-      "url": "https://knkx-live-a.edge.audiocdn.com/6285_256k",
+      "url": "https://knkx-live-a.edge.audiocdn.com/6285_128k?aw_0_1st.playerid=jazz24.org&uuid=2kjxxims",
       "favorite": false
     },
     {
@@ -701,7 +701,7 @@
       "name": "Number 1",
       "country": "Türkiye",
       "genre": "Pop/Dance",
-      "url": "http://abm21.com.au:8000/CONTAINER75",
+      "url": "http://abm21.com.au:8000/CONTAINER96",
       "favorite": false
     },
     {
