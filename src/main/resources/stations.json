@@ -165,7 +165,7 @@
       "name": "Radyo Spor",
       "country": "Türkiye",
       "genre": "Spor",
-      "url": "http://46.20.4.5:8170/",
+      "url": "https://moondigitaledge.radyotvonline.net/radyospor/playlist.m3u8",
       "favorite": false
     },
     {
@@ -525,7 +525,7 @@
       "name": "France Musique",
       "country": "Fransa",
       "genre": "Classical",
-      "url": "http://direct.francemusique.fr/live/francemusique-midfi.mp3",
+      "url": "http://icecast.radiofrance.fr/francemusique-hifi.aac",
       "favorite": false
     },
     {
@@ -533,7 +533,7 @@
       "name": "France Inter",
       "country": "Fransa",
       "genre": "Talk/Culture",
-      "url": "http://direct.franceinter.fr/live/franceinter-hifi.aac",
+      "url": "https://icecast.radiofrance.fr/franceinter-hifi.aac",
       "favorite": false
     },
     {
@@ -557,7 +557,7 @@
       "name": "SWR1",
       "country": "Almanya",
       "genre": "Pop/Oldies",
-      "url": "https://liveradio.swr.de/sw282p3/swr1bw/play.mp3",
+      "url": "https://dispatcher.rndfnk.com/swr/swr1/bw/mp3/128/stream.mp3",
       "favorite": false
     },
     {
@@ -565,7 +565,7 @@
       "name": "Deutschlandfunk Kultur",
       "country": "Almanya",
       "genre": "Culture/Classical",
-      "url": "https://st02.sslstream.dlf.de/dlf/02/low/aac/stream.aac?aggregator=web",
+      "url": "https://st02.sslstream.dlf.de/dlf/02/128/mp3/stream.mp3?aggregator=web",
       "favorite": false
     },
     {
@@ -573,7 +573,7 @@
       "name": "RAI Radio 2",
       "country": "İtalya",
       "genre": "Pop/Entertainment",
-      "url": "https://icecdn-19d24861e90342cc8decb03c24c8a419.msvdn.net/icecastRelay/S35942484/yp5F67151K92/icecast",
+      "url": "http://icestreaming.rai.it/2.mp3",
       "favorite": false
     },
     {
@@ -601,11 +601,11 @@
       "favorite": false
     },
     {
-      "id": "world-abc-lounge",
-      "name": "ABC Lounge",
-      "country": "Fransa",
+      "id": "us-soma-groovesalad-alt",
+      "name": "SomaFM Groove Salad",
+      "country": "ABD",
       "genre": "Lounge/Chillout",
-      "url": "http://strm112.1.fm/chilloutlounge_mobile_mp3",
+      "url": "https://ice1.somafm.com/groovesalad-128-aac",
       "favorite": false
     },
     {
@@ -629,7 +629,7 @@
       "name": "Rock Antenne",
       "country": "Almanya",
       "genre": "Rock/Indie",
-      "url": "https://mp3channels.webradio.antenne.de/rockantenne",
+      "url": "http://mp3channels.webradio.rockantenne.de/rockantenne",
       "favorite": false
     },
     {
