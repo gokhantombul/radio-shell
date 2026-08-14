@@ -85,7 +85,7 @@
       "name": "Kral FM",
       "country": "Türkiye",
       "genre": "Türkçe Pop",
-      "url": "https://dygedge2.radyotvonline.net/kralfm/playlist.m3u8?listenerid=29d0a6a85b59cea2ca801b70d2a3ebaf&awparams=companionAds%3Atrue",
+      "url": "https://anadolu.liderhost.com.tr:10853/;",
       "favorite": false
     },
     {
@@ -405,7 +405,7 @@
       "name": "BBC Radio 3",
       "country": "İngiltere",
       "genre": "Classical",
-      "url": "http://as-hls-ww-live.akamaized.net/pool_23461179/live/ww/bbc_radio_three/bbc_radio_three.isml/bbc_radio_three-audio%3d96000.norewind.m3u8",
+      "url": "http://as-hls-ww-live.akamaized.net/pool_23461179/live/ww/bbc_radio_three/bbc_radio_three.isml/bbc_radio_three-audio=96000.norewind.m3u8",
       "favorite": false
     },
     {
@@ -437,7 +437,7 @@
       "name": "Radio Paradise",
       "country": "ABD",
       "genre": "Eclectic/Rock",
-      "url": "http://stream-dc1.radioparadise.com/rp_192m.ogg",
+      "url": "http://stream.radioparadise.com/aac-128",
       "favorite": false
     },
     {
@@ -461,7 +461,7 @@
       "name": "Jazz24",
       "country": "ABD",
       "genre": "Jazz",
-      "url": "https://knkx-live-a.edge.audiocdn.com/6285_256k",
+      "url": "https://knkx-live-a.edge.audiocdn.com/6285_128k",
       "favorite": false
     },
     {
@@ -477,7 +477,7 @@
       "name": "SomaFM Groove Salad",
       "country": "ABD",
       "genre": "Ambient/Chill",
-      "url": "https://ice5.somafm.com/groovesalad-128-mp3",
+      "url": "https://ice1.somafm.com/groovesalad-128-mp3",
       "favorite": false
     },
     {
@@ -485,7 +485,7 @@
       "name": "SomaFM DEF CON",
       "country": "ABD",
       "genre": "Electronic",
-      "url": "https://ice6.somafm.com/defcon-128-aac",
+      "url": "https://ice1.somafm.com/defcon-128-mp3",
       "favorite": false
     },
     {
@@ -493,7 +493,7 @@
       "name": "SomaFM Drone Zone",
       "country": "ABD",
       "genre": "Ambient/Space",
-      "url": "https://ice2.somafm.com/dronezone-256-mp3",
+      "url": "https://ice1.somafm.com/dronezone-128-mp3",
       "favorite": false
     },
     {
@@ -501,7 +501,7 @@
       "name": "SomaFM Lush",
       "country": "İnternet",
       "genre": "Sensuous/Chill",
-      "url": "https://ice2.somafm.com/lush-128-mp3",
+      "url": "https://ice1.somafm.com/lush-128-mp3",
       "favorite": false
     },
     {
@@ -509,7 +509,7 @@
       "name": "SomaFM Cliqhop",
       "country": "İnternet",
       "genre": "IDM/Electronic",
-      "url": "https://ice2.somafm.com/cliqhop-128-mp3",
+      "url": "https://ice1.somafm.com/cliqhop-128-mp3",
       "favorite": false
     },
     {
@@ -685,7 +685,7 @@
       "name": "The Sound",
       "country": "Yeni Zelanda",
       "genre": "Rock/Indie",
-      "url": "https://mediaworks.streamguys1.com/sound_net/playlist.m3u8",
+      "url": "https://digitalstreams.mediaworks.nz/sound_net/playlist.m3u8",
       "favorite": false
     },
     {
@@ -701,7 +701,7 @@
       "name": "Number 1",
       "country": "Türkiye",
       "genre": "Pop/Dance",
-      "url": "http://abm21.com.au:8000/CONTAINER75",
+      "url": "https://dijimedya.radyotvonline.net/turkrap",
       "favorite": false
     },
     {
