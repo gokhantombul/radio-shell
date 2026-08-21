@@ -157,7 +157,7 @@
       "name": "NTV Radyo",
       "country": "Türkiye",
       "genre": "Haber/Kültür",
-      "url": "http://46.20.3.207/listen.pls",
+      "url": "http://46.20.3.207/;",
       "favorite": false
     },
     {
@@ -277,7 +277,7 @@
       "name": "Virgin Radio TR",
       "country": "Türkiye",
       "genre": "Pop/Rock",
-      "url": "http://provisioning.streamtheworld.com/pls/VIRGIN_RADIO.pls",
+      "url": "https://playerservices.streamtheworld.com/api/livestream-redirect/VIRGIN_RADIO_SC",
       "favorite": false
     },
     {
@@ -597,7 +597,7 @@
       "name": "Swiss Jazz",
       "country": "İsviçre",
       "genre": "Jazz",
-      "url": "http://stream.srg-ssr.ch/srgssr/rsj/aac/96",
+      "url": "http://stream.srg-ssr.ch/m/rsj/aacp_96",
       "favorite": false
     },
     {
